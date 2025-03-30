@@ -1,0 +1,146 @@
+import express from "express";
+import Category from "../models/Category.js";
+import auth from "../middlewares/auth.js";
+import isAdmin from "../middlewares/isAdmin.js";
+
+const router = express.Router();
+
+// GET /categories — obtener todas las categorías activas
+router.get("/", async (req, res) => {
+  try {
+    const query = { isActive: true };
+    if (req.query.type) {
+      query.type = req.query.type; // "perceptual" o "structural"
+    }
+    const categories = await Category.find(query);
+    res.json(categories);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /categories — crear una nueva categoría (solo admin)
+router.post("/", auth, isAdmin, async (req, res) => {
+  try {
+    const { name, description } = req.body;
+
+    if (!name)
+      return res.status(400).json({ error: "Category name is required" });
+
+    const existing = await Category.findOne({ name });
+    if (existing)
+      return res.status(409).json({ error: "Category already exists" });
+
+    const category = new Category({ name, description, isActive: true });
+    await category.save();
+
+    res.status(201).json(category);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /categories/:id — editar categoría (solo admin)
+router.put("/:id", auth, isAdmin, async (req, res) => {
+  try {
+    const { name, description, isActive } = req.body;
+
+    const updated = await Category.findByIdAndUpdate(
+      req.params.id,
+      { name, description, isActive },
+      { new: true }
+    );
+
+    if (!updated) return res.status(404).json({ error: "Category not found" });
+
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /categories/suggest — sugerencia estructural por parte del manager
+router.post("/suggest", auth, async (req, res) => {
+  try {
+    const { name, description } = req.body;
+
+    if (req.user.role !== "manager") {
+      return res
+        .status(403)
+        .json({ error: "Only managers can suggest categories" });
+    }
+
+    if (!name) return res.status(400).json({ error: "Name is required" });
+
+    const existing = await Category.findOne({
+      name: { $regex: new RegExp(`^${name.trim()}$`, "i") },
+    });
+
+    if (existing)
+      return res
+        .status(409)
+        .json({ error: "Category already exists or was suggested" });
+
+    const newCategory = new Category({
+      name: name.trim(),
+      description,
+      type: "structural",
+      isActive: false,
+      createdByManager: true,
+    });
+
+    await newCategory.save();
+    res.status(201).json({ message: "Category suggestion sent for review" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ✅ GET /categories/suggested?role=manager|client — ver sugerencias filtradas
+router.get("/suggested", auth, isAdmin, async (req, res) => {
+  try {
+    const roleFilter = req.query.role;
+    const filter = { isActive: false };
+
+    if (roleFilter === "manager") filter.createdByManager = true;
+    else if (roleFilter === "client") filter.createdByClient = true;
+
+    const suggestions = await Category.find(filter);
+    res.json(suggestions);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH /categories/:id/approve — aprobar una categoría sugerida
+router.patch("/:id/approve", auth, isAdmin, async (req, res) => {
+  try {
+    const category = await Category.findById(req.params.id);
+    if (!category) return res.status(404).json({ error: "Category not found" });
+
+    if (category.isActive) {
+      return res.status(400).json({ error: "Category is already active" });
+    }
+
+    category.isActive = true;
+    await category.save();
+
+    res.json({ message: "Category approved", category });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /categories/:id — eliminar sugerencia ofensiva o no válida
+router.delete("/:id", auth, isAdmin, async (req, res) => {
+  try {
+    const deleted = await Category.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ error: "Category not found" });
+
+    res.json({ message: "Category deleted", deleted });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+export default router;
