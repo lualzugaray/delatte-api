@@ -1,98 +1,115 @@
+// routes/auth.js
 import express from "express";
-import Client from "../models/Client.js";
+import verifyAuth0 from "../middlewares/verifyAuth0.js";
 import User from "../models/User.js";
-import bcrypt from "bcrypt";
+import Client from "../models/Client.js";
+import Manager from "../models/Manager.js";
 import jwt from "jsonwebtoken";
-import Manager from "../models/Manager.js"; 
 
 const router = express.Router();
-const saltRounds = 10;
 
-router.post("/register/client", async (req, res) => {
+const createToken = (user) =>
+  jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
+
+router.post("/auth0-login", async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-    const { email, password, firstName, lastName, profilePicture } = req.body;
-
-    if (!email || !password || !firstName) {
-      return res.status(400).json({ error: "Email, password and first name are required" });
-    }
-
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(409).json({ error: "User already exists" });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    const user = new User({
-      email,
-      password: hashedPassword,
-      role: "client"
-    });
-
-    await user.save();
-
-    const client = new Client({
-      userId: user._id,
-      firstName,
-      lastName,
-      profilePicture
-    });
-
-    await client.save();
-
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+    const authRes = await fetch(
+      "https://dev-d82ap42lb6n7381y.us.auth0.com/oauth/token",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          grant_type: "password",
+          username: email,
+          password,
+          client_id: process.env.AUTH0_BACKEND_CLIENT_ID,
+          client_secret: process.env.AUTH0_BACKEND_CLIENT_SECRET,
+          audience: "https://delatte.api",
+        }),
+      }
     );
 
-    res.status(201).json({ message: "Client registered", userId: user._id, token });
+    const authData = await authRes.json();
+
+    if (!authRes.ok) {
+      console.error("Auth0 login failed:", authData);
+      return res
+        .status(401)
+        .json({ error: authData.error_description || "Unauthorized" });
+    }
+
+    res.json({ access_token: authData.access_token });
+  } catch (err) {
+    console.error("Internal error:", err.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.post("/sync-client", verifyAuth0, async (req, res) => {
+  console.log("REQ.AUTH:", req.auth);
+  const email = req.body.email;
+  const { firstName, lastName, profilePicture } = req.body;
+
+  try {
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = new User({
+        email,
+        password: "auth0",
+        role: "client",
+      });
+      await user.save();
+
+      const client = new Client({
+        userId: user._id,
+        firstName,
+        lastName,
+        profilePicture,
+      });
+      await client.save();
+    }
+
+    const token = createToken(user);
+    res.json({ message: "Client synced", token });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-router.post("/register/manager", async (req, res) => {
+router.post("/sync-manager", verifyAuth0, async (req, res) => {
+    const email = req.body.email;
+    const { firstName, lastName, profilePicture } = req.body;
+  
     try {
-      const { email, password, fullName, phone } = req.body;
+      let user = await User.findOne({ email });
   
-      if (!email || !password || !fullName) {
-        return res.status(400).json({ error: "Email, password and fullName are required" });
+      if (!user) {
+        user = new User({
+          email,
+          password: "auth0",
+          role: "manager",
+        });
+        await user.save();
+  
+        const manager = new Manager({
+          userId: user._id,
+          fullName: `${firstName} ${lastName}`,
+          phone: "",
+        });
+        await manager.save();
       }
   
-      const existing = await User.findOne({ email });
-      if (existing) {
-        return res.status(409).json({ error: "User already exists" });
-      }
-  
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
-  
-      const user = new User({
-        email,
-        password: hashedPassword,
-        role: "manager"
-      });
-  
-      await user.save();
-  
-      const manager = new Manager({
-        userId: user._id,
-        fullName,
-        phone
-      });
-  
-      await manager.save();
-  
-      const token = jwt.sign(
-        { userId: user._id, role: user.role },
-        process.env.JWT_SECRET,
-        { expiresIn: "7d" }
-      );
-  
-      res.status(201).json({ message: "Manager registered", userId: user._id, token });
+      const token = createToken(user);
+      res.json({ message: "Manager synced", token });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
-  });  
+  });
+  
 
 export default router;

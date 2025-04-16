@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 import authRoutes from "./routes/auth.js";
-app.use("/auth", authRoutes);
+app.use("/api", authRoutes);
 
 // Ruta para probar que el servidor funciona
 app.get("/", (req, res) => {
