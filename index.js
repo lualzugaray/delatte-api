@@ -18,14 +18,14 @@ app.get("/", (req, res) => {
   res.send("Servidor funcionando 👌");
 });
 
-import usuariosRoutes from "./routes/usuarios.js";
-app.use("/usuarios", usuariosRoutes);
+import userRoutes from "./routes/users.js";
+app.use("/api/users", userRoutes);
 
 import cafesRoutes from "./routes/cafes.js";
 app.use("/cafes", cafesRoutes);
 
 import categoriesRoutes from "./routes/categories.js";
-app.use("/categories", categoriesRoutes);
+app.use("/api/categories", categoriesRoutes);
 
 import reviewsRoutes from "./routes/reviews.js";
 app.use("/reviews", reviewsRoutes);
@@ -34,7 +34,7 @@ import clientsRoutes from "./routes/clients.js";
 app.use("/clients", clientsRoutes);
 
 import managersRoutes from "./routes/managers.js";
-app.use("/managers", managersRoutes);
+app.use("/api/managers", managersRoutes);
 
 // Conexión a MongoDB
 mongoose.connect(process.env.MONGO_URI)

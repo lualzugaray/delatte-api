@@ -1,20 +1,24 @@
 import express from "express";
-import auth from "../middlewares/auth.js";
 import Manager from "../models/Manager.js";
 import Cafe from "../models/Cafe.js";
 import Review from "../models/Review.js";
 import { validationResult } from "express-validator";
 import { isValidScheduleForCategory } from "../utils/scheduleValidators.js";
 import scheduleValidation from "../validators/scheduleValidator.js";
+import verifyAuth0 from "../middlewares/verifyAuth0.js";
+import Category from "../models/Category.js";
 
 const router = express.Router();
+router.use((req, res, next) => {
+  console.log(`🟢 Entra a managers.js: ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 
 // GET /managers/me — obtener perfil del manager
-router.get("/me", auth, async (req, res) => {
+router.get("/me", verifyAuth0, async (req, res) => {
   try {
-    const manager = await Manager.findOne({ userId: req.user.userId }).populate(
-      "assignedCafe"
-    );
+    const manager = await Manager.findOne({ auth0Id: req.auth.sub }).populate("assignedCafe");
     if (!manager) return res.status(404).json({ error: "Manager not found" });
 
     res.json(manager);
@@ -24,11 +28,11 @@ router.get("/me", auth, async (req, res) => {
 });
 
 // PATCH /managers/me — actualizar info del manager
-router.patch("/me", auth, async (req, res) => {
+router.patch("/me", verifyAuth0, async (req, res) => {
   try {
     const updates = req.body;
     const manager = await Manager.findOneAndUpdate(
-      { userId: req.user.userId },
+      { auth0Id: req.auth.sub },
       updates,
       { new: true }
     );
@@ -40,41 +44,37 @@ router.patch("/me", auth, async (req, res) => {
   }
 });
 
-// GET /managers/me/cafe — obtener su propia cafetería
-router.get("/me/cafe", auth, async (req, res) => {
-  try {
-    const manager = await Manager.findOne({ userId: req.user.userId });
-    if (!manager) return res.status(404).json({ error: "Manager not found" });
+// GET /managers/me/cafe
+router.get("/me/cafe", verifyAuth0, async (req, res) => {
+  console.log("✅ Entró a GET /me/cafe");
 
-    const cafe = await Cafe.findOne({ managerId: manager.userId })
-      .populate("categories", "name")
-      .populate("perceptualCategories", "name")
-      .populate("menu")
-      .populate({
-        path: "reviews",
-        select: "rating comment createdAt clientId",
-        populate: {
-          path: "clientId",
-          select: "firstName lastName profilePicture",
-        },
-        options: { sort: { createdAt: -1 } },
-      });
+  console.log("🔐 req.auth:", req.auth);
 
-    if (!cafe) return res.status(404).json({ error: "Café not found" });
+  const manager = await Manager.findOne({ auth0Id: req.auth?.sub });
 
-    res.json(cafe);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  if (!manager) {
+    console.log("⛔ Manager not found con sub:", req.auth?.sub);
+    return res.status(404).json({ error: "Manager not found" });
   }
+
+  const cafe = await Cafe.findOne({ managerId: manager._id });
+
+  if (!cafe) {
+    console.log("⛔ Café not found para manager:", manager._id);
+    return res.status(404).json({ error: "Café not found" });
+  }
+
+  res.json(cafe);
 });
 
-// GET /managers/me/stats — estadísticas del café
-router.get("/me/stats", auth, async (req, res) => {
+
+// GET /managers/me/stats
+router.get("/me/stats", verifyAuth0, async (req, res) => {
   try {
-    const manager = await Manager.findOne({ userId: req.user.userId });
+    const manager = await Manager.findOne({ auth0Id: req.auth.sub });
     if (!manager) return res.status(404).json({ error: "Manager not found" });
 
-    const cafe = await Cafe.findOne({ managerId: manager.userId });
+    const cafe = await Cafe.findOne({ managerId: manager._id });
     if (!cafe) return res.status(404).json({ error: "Café not found" });
 
     const reviews = await Review.find({ cafeId: cafe._id });
@@ -99,12 +99,12 @@ router.get("/me/stats", auth, async (req, res) => {
 });
 
 // PUT /managers/me/cafe — actualizar su cafetería
-router.put("/me/cafe", auth, async (req, res) => {
+router.put("/me/cafe", verifyAuth0, async (req, res) => {
   try {
-    const manager = await Manager.findOne({ userId: req.user.userId });
+    const manager = await Manager.findOne({ auth0Id: req.auth.sub });
     if (!manager) return res.status(404).json({ error: "Manager not found" });
 
-    const cafe = await Cafe.findOne({ managerId: manager.userId });
+    const cafe = await Cafe.findOne({ managerId: manager._id });
     if (!cafe) return res.status(404).json({ error: "Café not found" });
 
     const updates = req.body;
@@ -113,7 +113,6 @@ router.put("/me/cafe", auth, async (req, res) => {
 
     for (const field of allowedFields) {
       if (updates[field] !== undefined) {
-        // Validar categorías si se actualizan
         if (field === "categories" && updates.schedule) {
           const categoryDocs = await Category.find({ _id: { $in: updates.categories }, isActive: true });
 
@@ -148,12 +147,12 @@ router.put("/me/cafe", auth, async (req, res) => {
 });
 
 // PATCH /managers/me/cafe/active — activar/desactivar su café
-router.patch("/me/cafe/active", auth, async (req, res) => {
+router.patch("/me/cafe/active", verifyAuth0, async (req, res) => {
   try {
-    const manager = await Manager.findOne({ userId: req.user.userId });
+    const manager = await Manager.findOne({ auth0Id: req.auth.sub });
     if (!manager) return res.status(404).json({ error: "Manager not found" });
 
-    const cafe = await Cafe.findOne({ managerId: manager.userId });
+    const cafe = await Cafe.findOne({ managerId: manager._id });
     if (!cafe) return res.status(404).json({ error: "Café not found" });
 
     cafe.isActive = !cafe.isActive;
@@ -169,30 +168,52 @@ router.patch("/me/cafe/active", auth, async (req, res) => {
 });
 
 // PATCH /managers/me/cafe/schedule
-router.patch(
-  "/me/cafe/schedule",
-  auth,
-  scheduleValidation,
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    try {
-      const manager = await Manager.findOne({ userId: req.user.userId });
-      if (!manager) return res.status(404).json({ error: "Manager not found" });
-
-      const cafe = await Cafe.findOne({ managerId: manager.userId });
-      if (!cafe) return res.status(404).json({ error: "Café not found" });
-
-      cafe.schedule = req.body.schedule;
-      await cafe.save();
-
-      res.json({ message: "Horario actualizado", schedule: cafe.schedule });
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
+router.patch("/me/cafe/schedule", verifyAuth0, scheduleValidation, async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
   }
-);
+  try {
+    const manager = await Manager.findOne({ auth0Id: req.auth.sub });
+    if (!manager) return res.status(404).json({ error: "Manager not found" });
+
+    const cafe = await Cafe.findOne({ managerId: manager._id });
+    if (!cafe) return res.status(404).json({ error: "Café not found" });
+
+    cafe.schedule = req.body.schedule;
+    await cafe.save();
+
+    res.json({ message: "Horario actualizado", schedule: cafe.schedule });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /managers/me/cafe — crear cafetería
+router.post("/me/cafe", verifyAuth0, async (req, res) => {
+  try {
+    console.log('entro')
+    const manager = await Manager.findOne({ auth0Id: req.auth.sub });
+    if (!manager) return res.status(404).json({ error: "Manager not found" });
+
+    const existingCafe = await Cafe.findOne({ managerId: manager._id });
+    if (existingCafe) {
+      return res.status(400).json({ error: "Ya tienes una cafetería registrada" });
+    }
+
+    const newCafe = new Cafe({
+      ...req.body,
+      managerId: manager._id,
+    });
+
+    await newCafe.save();
+    manager.assignedCafe = newCafe._id;
+    await manager.save();
+
+    res.status(201).json({ message: "Cafetería creada exitosamente", cafe: newCafe });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 export default router;

@@ -1,77 +1,21 @@
 import express from "express";
 import Cafe from "../models/Cafe.js";
 import Category from "../models/Category.js";
+import Manager from "../models/Manager.js";
 import isAdmin from "../middlewares/isAdmin.js";
-import auth from "../middlewares/auth.js";
+import verifyAuth0 from "../middlewares/verifyAuth0.js";
 import { isValidScheduleForCategory } from "../utils/scheduleValidators.js";
+import { isCafeOpenNow } from "../utils/isCafeOpenNow.js";
 
 const router = express.Router();
 
-router.post("/", auth, async (req, res) => {
-  try {
-    const { role, userId } = req.user;
-
-    if (role !== "manager") {
-      return res.status(403).json({ error: "Only managers can create a café" });
-    }
-
-    const { name, address, lat, lng, description, categories, gallery, schedule } = req.body;
-
-    if (!name || !address || lat == null || lng == null) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    // Validación automática de categorías
-    let validCategories = categories || [];
-    const ignoredCategories = [];
-
-    if (schedule && Array.isArray(validCategories)) {
-      const categoryDocs = await Category.find({ _id: { $in: validCategories }, isActive: true });
-
-      const validated = categoryDocs.filter((cat) => {
-        if (!cat.validateBySchedule) return true;
-
-        const isValid =
-          (cat.name === "Abre hasta tarde" && isValidScheduleForCategory(schedule, "openAfter20")) ||
-          (cat.name === "Abre temprano" && isValidScheduleForCategory(schedule, "openBefore8"));
-
-        if (!isValid) ignoredCategories.push(cat.name);
-        return isValid;
-      });
-
-      validCategories = validated.map((cat) => cat._id);
-    }
-
-    const newCafe = new Cafe({
-      name,
-      address,
-      description,
-      location: { lat, lng },
-      categories: validCategories,
-      gallery,
-      managerId: userId,
-      schedule,
-    });
-
-    await newCafe.save();
-
-    res.status(201).json({
-      message: "Café created",
-      cafeId: newCafe._id,
-      ...(ignoredCategories.length > 0 && { ignoredCategories }),
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.post("/", auth, async (req, res) => {
+// Obtener lista filtrada de cafés (abierta al público)
+router.post("/", async (req, res) => {
   try {
     const { categories, limit = 10, skip = 0 } = req.query;
 
     const query = { isActive: true };
 
-    // Si hay filtro por categorías
     if (categories) {
       const categoryList = categories.split(",");
       query.categories = { $in: categoryList };
@@ -89,9 +33,17 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
+// Obtener lista avanzada filtrada de cafés
 router.get("/", async (req, res) => {
   try {
-    const { categories, limit = 10, skip = 0 } = req.query;
+    const {
+      categories,
+      ratingMin,
+      sortBy = "createdAt",
+      openNow,
+      limit = 10,
+      skip = 0,
+    } = req.query;
 
     const query = { isActive: true };
 
@@ -100,27 +52,66 @@ router.get("/", async (req, res) => {
       query.categories = { $in: categoryList };
     }
 
-    const cafes = await Cafe.find(query)
-      .populate("categories", "name")
-      .populate({
-        path: "reviews",
-        select: "rating comment clientId createdAt",
-        options: { limit: 2, sort: { createdAt: -1 } },
-        populate: {
-          path: "clientId",
-          select: "firstName lastName profilePicture",
-        },
-      })
-      .sort({ createdAt: -1 })
-      .limit(parseInt(limit))
-      .skip(parseInt(skip));
+    if (ratingMin) {
+      query.averageRating = { $gte: parseFloat(ratingMin) };
+    }
 
-    res.json(cafes);
+    let cafes;
+
+    if (sortBy === "reviewsCount") {
+      cafes = await Cafe.aggregate([
+        { $match: query },
+        {
+          $addFields: {
+            reviewsCount: { $size: "$reviews" }
+          }
+        },
+        { $sort: { reviewsCount: -1 } },
+        { $skip: parseInt(skip) },
+        { $limit: parseInt(limit) },
+      ]);
+
+      cafes = await Cafe.populate(cafes, [
+        { path: "categories", select: "name" },
+        {
+          path: "reviews",
+          options: { limit: 2, sort: { createdAt: -1 } },
+          populate: { path: "clientId", select: "firstName lastName profilePicture" },
+        }
+      ]);
+    } else {
+      cafes = await Cafe.find(query)
+        .populate("categories", "name")
+        .populate({
+          path: "reviews",
+          select: "rating comment clientId createdAt",
+          options: { limit: 2, sort: { createdAt: -1 } },
+          populate: {
+            path: "clientId",
+            select: "firstName lastName profilePicture",
+          },
+        })
+        .sort(
+          sortBy === "rating"
+            ? { averageRating: -1 }
+            : { createdAt: -1 }
+        )
+        .limit(parseInt(limit))
+        .skip(parseInt(skip));
+    }
+
+    const filteredCafes =
+      openNow === "true"
+        ? cafes.filter((cafe) => isCafeOpenNow(cafe.schedule))
+        : cafes;
+
+    res.json(filteredCafes);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// Detalle de café
 router.get("/:id", async (req, res) => {
   try {
     const cafe = await Cafe.findById(req.params.id)
@@ -147,33 +138,19 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// POST /cafes/:id/menu — Agregar ítem(s) al menú (solo manager dueño del café)
-router.post("/:id/menu", auth, async (req, res) => {
+// Agregar ítems al menú
+router.post("/:id/menu", verifyAuth0, async (req, res) => {
   try {
-    const { userId, role } = req.user;
-    const { items } = req.body; // puede ser uno o varios
+    const { items } = req.body;
 
-    if (role !== "manager") {
-      return res
-        .status(403)
-        .json({ error: "Only managers can modify the menu" });
-    }
-
-    if (!Array.isArray(items) || items.length === 0) {
-      return res
-        .status(400)
-        .json({ error: "Must send at least one menu item" });
-    }
+    const manager = await Manager.findOne({ auth0Id: req.auth.sub });
+    if (!manager) return res.status(403).json({ error: "Unauthorized" });
 
     const cafe = await Cafe.findById(req.params.id);
-    if (!cafe) {
-      return res.status(404).json({ error: "Café not found" });
-    }
+    if (!cafe) return res.status(404).json({ error: "Café not found" });
 
-    if (String(cafe.managerId) !== String(userId)) {
-      return res
-        .status(403)
-        .json({ error: "You can only update your own café" });
+    if (String(cafe.managerId) !== String(manager._id)) {
+      return res.status(403).json({ error: "Only the owner can update the menu" });
     }
 
     cafe.menu.push(...items);
@@ -185,30 +162,23 @@ router.post("/:id/menu", auth, async (req, res) => {
   }
 });
 
-router.put("/:cafeId/menu/:itemId", auth, async (req, res) => {
+// Editar ítem del menú
+router.put("/:cafeId/menu/:itemId", verifyAuth0, async (req, res) => {
   try {
-    const { cafeId, itemId } = req.params;
-    const { userId, role } = req.user;
+    const manager = await Manager.findOne({ auth0Id: req.auth.sub });
+    if (!manager) return res.status(403).json({ error: "Unauthorized" });
 
-    if (role !== "manager") {
-      return res
-        .status(403)
-        .json({ error: "Only managers can update the menu" });
-    }
-
-    const cafe = await Cafe.findById(cafeId);
+    const cafe = await Cafe.findById(req.params.cafeId);
     if (!cafe) return res.status(404).json({ error: "Café not found" });
 
-    if (String(cafe.managerId) !== String(userId)) {
-      return res
-        .status(403)
-        .json({ error: "You can only update your own café" });
+    if (String(cafe.managerId) !== String(manager._id)) {
+      return res.status(403).json({ error: "Only the owner can update the menu" });
     }
 
-    const item = cafe.menu.id(itemId);
+    const item = cafe.menu.id(req.params.itemId);
     if (!item) return res.status(404).json({ error: "Menu item not found" });
 
-    Object.assign(item, req.body); // actualiza solo los campos enviados
+    Object.assign(item, req.body);
     await cafe.save();
 
     res.json({ message: "Menu item updated", item });
@@ -217,27 +187,20 @@ router.put("/:cafeId/menu/:itemId", auth, async (req, res) => {
   }
 });
 
-router.delete("/:cafeId/menu/:itemId", auth, async (req, res) => {
+// Eliminar ítem del menú
+router.delete("/:cafeId/menu/:itemId", verifyAuth0, async (req, res) => {
   try {
-    const { cafeId, itemId } = req.params;
-    const { userId, role } = req.user;
+    const manager = await Manager.findOne({ auth0Id: req.auth.sub });
+    if (!manager) return res.status(403).json({ error: "Unauthorized" });
 
-    if (role !== "manager") {
-      return res
-        .status(403)
-        .json({ error: "Only managers can delete from the menu" });
-    }
-
-    const cafe = await Cafe.findById(cafeId);
+    const cafe = await Cafe.findById(req.params.cafeId);
     if (!cafe) return res.status(404).json({ error: "Café not found" });
 
-    if (String(cafe.managerId) !== String(userId)) {
-      return res
-        .status(403)
-        .json({ error: "You can only modify your own café" });
+    if (String(cafe.managerId) !== String(manager._id)) {
+      return res.status(403).json({ error: "Only the owner can modify the menu" });
     }
 
-    const item = cafe.menu.id(itemId);
+    const item = cafe.menu.id(req.params.itemId);
     if (!item) return res.status(404).json({ error: "Menu item not found" });
 
     item.remove();
@@ -249,7 +212,8 @@ router.delete("/:cafeId/menu/:itemId", auth, async (req, res) => {
   }
 });
 
-router.patch("/:id/active", auth, isAdmin, async (req, res) => {
+// Activar / desactivar café (admin)
+router.patch("/:id/active", verifyAuth0, isAdmin, async (req, res) => {
   try {
     const { isActive } = req.body;
 

@@ -35,4 +35,5 @@ const cafeSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
 });
 
-export default mongoose.model("Cafe", cafeSchema);
+export default mongoose.model("Cafe", cafeSchema, "cafes");
+

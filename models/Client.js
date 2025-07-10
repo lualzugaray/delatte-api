@@ -1,23 +1,9 @@
 import mongoose from "mongoose";
 
 const clientSchema = new mongoose.Schema({
-  userId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: "User", 
-    required: true 
-  },
-  firstName: { 
-    type: String, 
-    required: true, 
-    trim: true,
-    minlength: 2,
-    maxlength: 50
-  },
-  lastName: { 
-    type: String, 
-    trim: true,
-    maxlength: 50
-  },
+  auth0Id: { type: String, required: true, unique: true }, // ← String, no ObjectId
+  firstName: { type: String, required: true, trim: true, minlength: 2, maxlength: 50 },
+  lastName: { type: String, trim: true, maxlength: 50 },
   profilePicture: {
     type: String,
     validate: {
@@ -25,14 +11,8 @@ const clientSchema = new mongoose.Schema({
       message: "El link de la imagen no es válido"
     }
   },
-  bio: { 
-    type: String, 
-    maxlength: 280 
-  },
-  preferences: [{ 
-    type: String,
-    trim: true
-  }],
+  bio: { type: String, maxlength: 280 },
+  preferences: [{ type: String, trim: true }],
   socialLinks: {
     instagram: {
       type: String,
@@ -70,14 +50,8 @@ const clientSchema = new mongoose.Schema({
       }
     }
   },
-  favorites: [{ 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: "Cafe" 
-  }],
-  registeredAt: { 
-    type: Date, 
-    default: Date.now 
-  }
+  favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Cafe" }],
+  registeredAt: { type: Date, default: Date.now }
 });
 
 export default mongoose.model("Client", clientSchema);

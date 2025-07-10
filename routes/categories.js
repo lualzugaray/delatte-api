@@ -1,7 +1,7 @@
 import express from "express";
 import Category from "../models/Category.js";
-import auth from "../middlewares/auth.js";
 import isAdmin from "../middlewares/isAdmin.js";
+import verifyAuth0 from "../middlewares/verifyAuth0.js";
 
 const router = express.Router();
 
@@ -20,7 +20,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST /categories — crear una nueva categoría (solo admin)
-router.post("/", auth, isAdmin, async (req, res) => {
+router.post("/", verifyAuth0, isAdmin, async (req, res) => {
   try {
     const { name, description } = req.body;
 
@@ -41,7 +41,7 @@ router.post("/", auth, isAdmin, async (req, res) => {
 });
 
 // PUT /categories/:id — editar categoría (solo admin)
-router.put("/:id", auth, isAdmin, async (req, res) => {
+router.put("/:id", verifyAuth0, isAdmin, async (req, res) => {
   try {
     const { name, description, isActive } = req.body;
 
@@ -60,11 +60,11 @@ router.put("/:id", auth, isAdmin, async (req, res) => {
 });
 
 // POST /categories/suggest — sugerencia estructural por parte del manager
-router.post("/suggest", auth, async (req, res) => {
+router.post("/suggest", verifyAuth0, async (req, res) => {
   try {
     const { name, description } = req.body;
 
-    if (req.user.role !== "manager") {
+    if (req.auth.role !== "manager") {
       return res
         .status(403)
         .json({ error: "Only managers can suggest categories" });
@@ -96,8 +96,8 @@ router.post("/suggest", auth, async (req, res) => {
   }
 });
 
-// ✅ GET /categories/suggested?role=manager|client — ver sugerencias filtradas
-router.get("/suggested", auth, isAdmin, async (req, res) => {
+// GET /categories/suggested?role=manager|client — ver sugerencias filtradas
+router.get("/suggested", verifyAuth0, isAdmin, async (req, res) => {
   try {
     const roleFilter = req.query.role;
     const filter = { isActive: false };
@@ -113,7 +113,7 @@ router.get("/suggested", auth, isAdmin, async (req, res) => {
 });
 
 // PATCH /categories/:id/approve — aprobar una categoría sugerida
-router.patch("/:id/approve", auth, isAdmin, async (req, res) => {
+router.patch("/:id/approve", verifyAuth0, isAdmin, async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
     if (!category) return res.status(404).json({ error: "Category not found" });
@@ -132,7 +132,7 @@ router.patch("/:id/approve", auth, isAdmin, async (req, res) => {
 });
 
 // DELETE /categories/:id — eliminar sugerencia ofensiva o no válida
-router.delete("/:id", auth, isAdmin, async (req, res) => {
+router.delete("/:id", verifyAuth0, isAdmin, async (req, res) => {
   try {
     const deleted = await Category.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ error: "Category not found" });
