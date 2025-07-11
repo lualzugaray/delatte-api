@@ -10,7 +10,7 @@ import Category from "../models/Category.js";
 
 const router = express.Router();
 router.use((req, res, next) => {
-  console.log(`🟢 Entra a managers.js: ${req.method} ${req.originalUrl}`);
+  console.log(`Entra a managers.js: ${req.method} ${req.originalUrl}`);
   next();
 });
 
@@ -46,21 +46,15 @@ router.patch("/me", verifyAuth0, async (req, res) => {
 
 // GET /managers/me/cafe
 router.get("/me/cafe", verifyAuth0, async (req, res) => {
-  console.log("✅ Entró a GET /me/cafe");
-
-  console.log("🔐 req.auth:", req.auth);
-
   const manager = await Manager.findOne({ auth0Id: req.auth?.sub });
 
   if (!manager) {
-    console.log("⛔ Manager not found con sub:", req.auth?.sub);
     return res.status(404).json({ error: "Manager not found" });
   }
 
   const cafe = await Cafe.findOne({ managerId: manager._id });
 
   if (!cafe) {
-    console.log("⛔ Café not found para manager:", manager._id);
     return res.status(404).json({ error: "Café not found" });
   }
 
@@ -108,7 +102,7 @@ router.put("/me/cafe", verifyAuth0, async (req, res) => {
     if (!cafe) return res.status(404).json({ error: "Café not found" });
 
     const updates = req.body;
-    const allowedFields = ["name", "address", "description", "location", "categories", "gallery", "schedule"];
+    const allowedFields = ["name", "address", "description", "location", "categories", "gallery", "coverImage", "schedule"];
     const ignoredCategories = [];
 
     for (const field of allowedFields) {
@@ -189,12 +183,19 @@ router.patch("/me/cafe/schedule", verifyAuth0, scheduleValidation, async (req, r
   }
 });
 
-// POST /managers/me/cafe — crear cafetería
 router.post("/me/cafe", verifyAuth0, async (req, res) => {
   try {
-    console.log('entro')
-    const manager = await Manager.findOne({ auth0Id: req.auth.sub });
-    if (!manager) return res.status(404).json({ error: "Manager not found" });
+    const auth0Id = req.auth.sub;
+
+    let manager = await Manager.findOne({ auth0Id });
+
+    if (!manager) {
+      manager = new Manager({
+        auth0Id,
+        fullName: req.body.managerName || "Sin nombre", 
+      });
+      await manager.save();
+    }
 
     const existingCafe = await Cafe.findOne({ managerId: manager._id });
     if (existingCafe) {
@@ -212,6 +213,7 @@ router.post("/me/cafe", verifyAuth0, async (req, res) => {
 
     res.status(201).json({ message: "Cafetería creada exitosamente", cafe: newCafe });
   } catch (err) {
+    console.error("Error en POST /me/cafe:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
