@@ -4,39 +4,15 @@ import Category from "../models/Category.js";
 import Manager from "../models/Manager.js";
 import isAdmin from "../middlewares/isAdmin.js";
 import verifyAuth0 from "../middlewares/verifyAuth0.js";
-import { isValidScheduleForCategory } from "../utils/scheduleValidators.js";
 import { isCafeOpenNow } from "../utils/isCafeOpenNow.js";
 
 const router = express.Router();
 
-// Obtener lista filtrada de cafés (abierta al público)
-router.post("/", async (req, res) => {
-  try {
-    const { categories, limit = 10, skip = 0 } = req.query;
-
-    const query = { isActive: true };
-
-    if (categories) {
-      const categoryList = categories.split(",");
-      query.categories = { $in: categoryList };
-    }
-
-    const cafes = await Cafe.find(query)
-      .populate("categories", "name")
-      .sort({ createdAt: -1 })
-      .limit(parseInt(limit))
-      .skip(parseInt(skip));
-
-    res.json(cafes);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Obtener lista avanzada filtrada de cafés
+// routes/cafes.js
 router.get("/", async (req, res) => {
   try {
     const {
+      q,
       categories,
       ratingMin,
       sortBy = "createdAt",
@@ -46,6 +22,23 @@ router.get("/", async (req, res) => {
     } = req.query;
 
     const query = { isActive: true };
+
+    // 🟡 Si hay búsqueda textual
+    if (q) {
+      const regex = new RegExp(q, "i");
+
+      // Buscamos IDs de categorías cuyo nombre matchee el texto
+      const matchedCats = await Category.find({ name: regex });
+      const matchedCatIds = matchedCats.map((cat) => cat._id);
+
+      // Búsqueda combinada: nombre, descripción o match con categorías
+      query.$or = [
+        { name: regex },
+        { description: regex },
+        { categories: { $in: matchedCatIds } },
+        { perceptualCategories: { $in: matchedCatIds } },
+      ];
+    }
 
     if (categories) {
       const categoryList = categories.split(",");
@@ -81,6 +74,7 @@ router.get("/", async (req, res) => {
       ]);
     } else {
       cafes = await Cafe.find(query)
+        .select("name location address averageRating description categories reviews coverImage gallery")
         .populate("categories", "name")
         .populate({
           path: "reviews",
@@ -107,11 +101,34 @@ router.get("/", async (req, res) => {
 
     res.json(filteredCafes);
   } catch (err) {
+    console.error("Error en /api/cafes:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// Detalle de café
+router.post("/suggestions", verifyAuth0, async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ error: "Name required" });
+
+    const exists = await Category.findOne({ name: { $regex: new RegExp(`^${name}$`, "i") } });
+    if (exists) return res.status(400).json({ error: "Category already exists or suggested" });
+
+    const newCat = new Category({
+      name,
+      type: "suggested",
+      isActive: false,
+      suggestedBy: req.auth.sub
+    });
+
+    await newCat.save();
+    res.status(201).json({ message: "Suggestion submitted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ✅ Obtener detalle de un café
 router.get("/:id", async (req, res) => {
   try {
     const cafe = await Cafe.findById(req.params.id)
@@ -138,7 +155,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Agregar ítems al menú
+// ✅ Agregar ítems al menú
 router.post("/:id/menu", verifyAuth0, async (req, res) => {
   try {
     const { items } = req.body;
@@ -162,7 +179,7 @@ router.post("/:id/menu", verifyAuth0, async (req, res) => {
   }
 });
 
-// Editar ítem del menú
+// ✅ Editar ítem del menú
 router.put("/:cafeId/menu/:itemId", verifyAuth0, async (req, res) => {
   try {
     const manager = await Manager.findOne({ auth0Id: req.auth.sub });
@@ -187,7 +204,7 @@ router.put("/:cafeId/menu/:itemId", verifyAuth0, async (req, res) => {
   }
 });
 
-// Eliminar ítem del menú
+// ✅ Eliminar ítem del menú
 router.delete("/:cafeId/menu/:itemId", verifyAuth0, async (req, res) => {
   try {
     const manager = await Manager.findOne({ auth0Id: req.auth.sub });
@@ -212,7 +229,7 @@ router.delete("/:cafeId/menu/:itemId", verifyAuth0, async (req, res) => {
   }
 });
 
-// Activar / desactivar café (admin)
+// ✅ Activar / desactivar café (admin)
 router.patch("/:id/active", verifyAuth0, isAdmin, async (req, res) => {
   try {
     const { isActive } = req.body;

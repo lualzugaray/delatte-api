@@ -22,7 +22,7 @@ import userRoutes from "./routes/users.js";
 app.use("/api/users", userRoutes);
 
 import cafesRoutes from "./routes/cafes.js";
-app.use("/cafes", cafesRoutes);
+app.use("/api/cafes", cafesRoutes);
 
 import categoriesRoutes from "./routes/categories.js";
 app.use("/api/categories", categoriesRoutes);

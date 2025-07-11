@@ -11,6 +11,7 @@ const cafeSchema = new mongoose.Schema({
   categories: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
   perceptualCategories: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }], 
   gallery: [String],
+  coverImage: { type: String },
   menu: [
     {
       name: { type: String, required: true },
