@@ -5,10 +5,11 @@ import Manager from "../models/Manager.js";
 import isAdmin from "../middlewares/isAdmin.js";
 import verifyAuth0 from "../middlewares/verifyAuth0.js";
 import { isCafeOpenNow } from "../utils/isCafeOpenNow.js";
+import { normalizeText } from "../utils/text.js";
 
 const router = express.Router();
 
-// routes/cafes.js
+// GET /api/cafes
 router.get("/", async (req, res) => {
   try {
     const {
@@ -21,114 +22,119 @@ router.get("/", async (req, res) => {
       skip = 0,
     } = req.query;
 
-    const query = { isActive: true };
+    const match = { isActive: true };
 
-    // 🟡 Si hay búsqueda textual
     if (q) {
-      const regex = new RegExp(q, "i");
+      const normalizedQ = normalizeText(q);
+      const regex = new RegExp(normalizedQ, "i");
 
-      // Buscamos IDs de categorías cuyo nombre matchee el texto
-      const matchedCats = await Category.find({ name: regex });
-      const matchedCatIds = matchedCats.map((cat) => cat._id);
+      const matchedCats = await Category.find({
+        name: { $regex: regex }
+      });
+      const matchedCatIds = matchedCats.map(cat => cat._id);
 
-      // Búsqueda combinada: nombre, descripción o match con categorías
-      query.$or = [
-        { name: regex },
-        { description: regex },
-        { categories: { $in: matchedCatIds } },
-        { perceptualCategories: { $in: matchedCatIds } },
+      match.$or = [
+        { nameNormalized:        regex },
+        { descriptionNormalized: regex },
+        { categories:           { $in: matchedCatIds } },
+        { perceptualCategories: { $in: matchedCatIds } }
       ];
     }
 
     if (categories) {
-      const categoryList = categories.split(",");
-      query.categories = { $in: categoryList };
+      match.categories = { $in: categories.split(",") };
     }
 
     if (ratingMin) {
-      query.averageRating = { $gte: parseFloat(ratingMin) };
+      match.averageRating = { $gte: parseFloat(ratingMin) };
     }
 
-    let cafes;
-
-    if (sortBy === "reviewsCount") {
-      cafes = await Cafe.aggregate([
-        { $match: query },
-        {
-          $addFields: {
-            reviewsCount: { $size: "$reviews" }
-          }
+    const pipeline = [
+      { $match: match },
+      {
+        $lookup: {
+          from:         "reviews",
+          localField:   "_id",
+          foreignField: "cafeId",
+          as:           "reviews",
         },
-        { $sort: { reviewsCount: -1 } },
-        { $skip: parseInt(skip) },
-        { $limit: parseInt(limit) },
-      ]);
-
-      cafes = await Cafe.populate(cafes, [
-        { path: "categories", select: "name" },
-        {
-          path: "reviews",
-          options: { limit: 2, sort: { createdAt: -1 } },
-          populate: { path: "clientId", select: "firstName lastName profilePicture" },
-        }
-      ]);
-    } else {
-      cafes = await Cafe.find(query)
-        .select("name location address averageRating description categories reviews coverImage gallery")
-        .populate("categories", "name")
-        .populate({
-          path: "reviews",
-          select: "rating comment clientId createdAt",
-          options: { limit: 2, sort: { createdAt: -1 } },
-          populate: {
-            path: "clientId",
-            select: "firstName lastName profilePicture",
-          },
-        })
-        .sort(
+      },
+      {
+        $addFields: {
+          reviewsCount: { $size: "$reviews" },
+        },
+      },
+      {
+        $project: {
+          name:          1,
+          address:       1,
+          location:      1,
+          description:   1,
+          categories:    1,
+          gallery:       1,
+          coverImage:    1,
+          averageRating: 1,
+          reviewsCount:  1,
+          schedule:      1,
+        },
+      },
+      {
+        $sort:
           sortBy === "rating"
             ? { averageRating: -1 }
-            : { createdAt: -1 }
-        )
-        .limit(parseInt(limit))
-        .skip(parseInt(skip));
+            : { [sortBy]: -1 }
+      },
+      { $skip:  parseInt(skip,  10) },
+      { $limit: parseInt(limit, 10) },
+    ];
+
+    let cafes = await Cafe.aggregate(pipeline).exec();
+
+    if (openNow === "true") {
+      cafes = cafes.filter(cafe => isCafeOpenNow(cafe.schedule));
     }
 
-    const filteredCafes =
-      openNow === "true"
-        ? cafes.filter((cafe) => isCafeOpenNow(cafe.schedule))
-        : cafes;
-
-    res.json(filteredCafes);
+    res.json(cafes);
   } catch (err) {
-    console.error("Error en /api/cafes:", err);
+    console.error("Error en GET /api/cafes:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
+// POST /api/cafes/suggestions
 router.post("/suggestions", verifyAuth0, async (req, res) => {
   try {
     const { name } = req.body;
-    if (!name) return res.status(400).json({ error: "Name required" });
+    if (!name) {
+      return res.status(400).json({ error: "Name required" });
+    }
 
-    const exists = await Category.findOne({ name: { $regex: new RegExp(`^${name}$`, "i") } });
-    if (exists) return res.status(400).json({ error: "Category already exists or suggested" });
+    const exists = await Category.findOne({
+      name: { $regex: new RegExp(`^${normalizeText(name)}$`, "i") }
+    });
+
+    if (exists) {
+      return res
+        .status(400)
+        .json({ error: "Category already exists or suggested" });
+    }
 
     const newCat = new Category({
       name,
-      type: "suggested",
-      isActive: false,
+      type:       "suggested",
+      isActive:   false,
       suggestedBy: req.auth.sub
     });
 
     await newCat.save();
     res.status(201).json({ message: "Suggestion submitted" });
   } catch (err) {
+    console.error("Error en POST /api/cafes/suggestions:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ✅ Obtener detalle de un café
+// GET /api/cafes/:id — detalle de un café
 router.get("/:id", async (req, res) => {
   try {
     const cafe = await Cafe.findById(req.params.id)
@@ -136,10 +142,10 @@ router.get("/:id", async (req, res) => {
       .populate("menu")
       .populate("managerId", "fullName")
       .populate({
-        path: "reviews",
-        select: "rating comment createdAt clientId",
+        path:    "reviews",
+        select:  "rating comment createdAt clientId",
         populate: {
-          path: "clientId",
+          path:   "clientId",
           select: "firstName lastName profilePicture",
         },
         options: { sort: { createdAt: -1 } },
@@ -151,99 +157,125 @@ router.get("/:id", async (req, res) => {
 
     res.json(cafe);
   } catch (err) {
+    console.error("Error en GET /api/cafes/:id:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ✅ Agregar ítems al menú
+// POST /api/cafes/:id/menu — agregar ítems al menú
 router.post("/:id/menu", verifyAuth0, async (req, res) => {
   try {
     const { items } = req.body;
-
     const manager = await Manager.findOne({ auth0Id: req.auth.sub });
-    if (!manager) return res.status(403).json({ error: "Unauthorized" });
+    if (!manager) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
 
     const cafe = await Cafe.findById(req.params.id);
-    if (!cafe) return res.status(404).json({ error: "Café not found" });
-
+    if (!cafe) {
+      return res.status(404).json({ error: "Café not found" });
+    }
     if (String(cafe.managerId) !== String(manager._id)) {
-      return res.status(403).json({ error: "Only the owner can update the menu" });
+      return res
+        .status(403)
+        .json({ error: "Only the owner can update the menu" });
     }
 
     cafe.menu.push(...items);
     await cafe.save();
-
     res.status(201).json({ message: "Menu updated", menu: cafe.menu });
   } catch (err) {
+    console.error("Error en POST /api/cafes/:id/menu:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ✅ Editar ítem del menú
+// PUT /api/cafes/:cafeId/menu/:itemId — editar ítem del menú
 router.put("/:cafeId/menu/:itemId", verifyAuth0, async (req, res) => {
   try {
     const manager = await Manager.findOne({ auth0Id: req.auth.sub });
-    if (!manager) return res.status(403).json({ error: "Unauthorized" });
+    if (!manager) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
 
     const cafe = await Cafe.findById(req.params.cafeId);
-    if (!cafe) return res.status(404).json({ error: "Café not found" });
-
+    if (!cafe) {
+      return res.status(404).json({ error: "Café not found" });
+    }
     if (String(cafe.managerId) !== String(manager._id)) {
-      return res.status(403).json({ error: "Only the owner can update the menu" });
+      return res
+        .status(403)
+        .json({ error: "Only the owner can update the menu" });
     }
 
     const item = cafe.menu.id(req.params.itemId);
-    if (!item) return res.status(404).json({ error: "Menu item not found" });
+    if (!item) {
+      return res.status(404).json({ error: "Menu item not found" });
+    }
 
     Object.assign(item, req.body);
     await cafe.save();
-
     res.json({ message: "Menu item updated", item });
   } catch (err) {
+    console.error(
+      "Error en PUT /api/cafes/:cafeId/menu/:itemId:",
+      err
+    );
     res.status(500).json({ error: err.message });
   }
 });
 
-// ✅ Eliminar ítem del menú
+// DELETE /api/cafes/:cafeId/menu/:itemId — eliminar ítem del menú
 router.delete("/:cafeId/menu/:itemId", verifyAuth0, async (req, res) => {
   try {
     const manager = await Manager.findOne({ auth0Id: req.auth.sub });
-    if (!manager) return res.status(403).json({ error: "Unauthorized" });
+    if (!manager) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
 
     const cafe = await Cafe.findById(req.params.cafeId);
-    if (!cafe) return res.status(404).json({ error: "Café not found" });
-
+    if (!cafe) {
+      return res.status(404).json({ error: "Café not found" });
+    }
     if (String(cafe.managerId) !== String(manager._id)) {
-      return res.status(403).json({ error: "Only the owner can modify the menu" });
+      return res
+        .status(403)
+        .json({ error: "Only the owner can modify the menu" });
     }
 
     const item = cafe.menu.id(req.params.itemId);
-    if (!item) return res.status(404).json({ error: "Menu item not found" });
+    if (!item) {
+      return res.status(404).json({ error: "Menu item not found" });
+    }
 
     item.remove();
     await cafe.save();
-
     res.json({ message: "Menu item deleted" });
   } catch (err) {
+    console.error(
+      "Error en DELETE /api/cafes/:cafeId/menu/:itemId:",
+      err
+    );
     res.status(500).json({ error: err.message });
   }
 });
 
-// ✅ Activar / desactivar café (admin)
+// PATCH /api/cafes/:id/active — activar/desactivar café (admin)
 router.patch("/:id/active", verifyAuth0, isAdmin, async (req, res) => {
   try {
     const { isActive } = req.body;
-
     const updated = await Cafe.findByIdAndUpdate(
       req.params.id,
       { isActive },
       { new: true }
     );
 
-    if (!updated) return res.status(404).json({ error: "Café not found" });
-
+    if (!updated) {
+      return res.status(404).json({ error: "Café not found" });
+    }
     res.json({ message: "Café status updated", cafe: updated });
   } catch (err) {
+    console.error("Error en PATCH /api/cafes/:id/active:", err);
     res.status(500).json({ error: err.message });
   }
 });
