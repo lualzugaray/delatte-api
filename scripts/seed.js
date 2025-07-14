@@ -108,7 +108,15 @@ async function seed() {
       name:"La Farmacia Café", address:"Ciudad Vieja, Montevideo",
       location:{lat:-34.906, lng:-56.199},
       description:"Antiguo local estilo farmacia transformado en café boutique.",
-      categories:["WiFi","Tiene enchufes","Céntrico"], perceptualCategories:["Instagrammeable","Estilo vintage"],
+      categories: [
+        cats["WiFi"],
+        cats["Espacio techado"],     // replace “Tiene enchufes” with your actual key
+        cats["Céntrico"]
+      ],
+      perceptualCategories: [
+        cats["Instagrammeable"],
+        cats["Estilo vintage"]
+      ],
       images:[
         "https://images.unsplash.com/photo-1586985289384-a4155223d1d5",
         "https://images.unsplash.com/photo-1523942839745-7848d43b21b5",
@@ -124,7 +132,15 @@ async function seed() {
       name:"Culto Café", address:"Córdoba y Pablo de María, Córdoba",
       location:{lat:-34.908, lng:-56.175},
       description:"Espacio industrial, especialidad en tueste y sabor.",
-      categories:["WiFi","Espacio para trabajar","Opciones vegetarianas"], perceptualCategories:["Ambiente relajado"],
+      categories: [
+        cats["WiFi"],
+        cats["Espacio techado"],     // replace “Tiene enchufes” with your actual key
+        cats["Céntrico"]
+      ],
+      perceptualCategories: [
+        cats["Instagrammeable"],
+        cats["Estilo vintage"]
+      ],
       images:[
         "https://images.unsplash.com/photo-1533777324565-a040eb52fac2",
         "https://images.unsplash.com/photo-1544060747-2bb51a19a0af",
@@ -140,7 +156,15 @@ async function seed() {
       name:"La Linda Bakery", address:"Punta Carretas, Montevideo",
       location:{lat:-34.929, lng:-56.188},
       description:"Panadería y café con patio interior y brunch.",
-      categories:["Al aire libre","Opciones vegetarianas"], perceptualCategories:["Con plantas"],
+      categories: [
+        cats["WiFi"],
+        cats["Espacio techado"],     // replace “Tiene enchufes” with your actual key
+        cats["Céntrico"]
+      ],
+      perceptualCategories: [
+        cats["Instagrammeable"],
+        cats["Estilo vintage"]
+      ],
       images:[
         "https://images.unsplash.com/photo-1560448204-53e8d8dd77e0",
         "https://images.unsplash.com/photo-1586190848861-99aa4a171e90",
@@ -155,7 +179,15 @@ async function seed() {
       name:"Bar Facal", address:"18 de Julio, Centro",
       location:{lat:-34.902, lng:-56.190},
       description:"Cafetería tradicional con show de tango al mediodía.",
-      categories:["Céntrico","Reservas"], perceptualCategories:["Tradicional"],
+      categories: [
+        cats["WiFi"],
+        cats["Espacio techado"],
+        cats["Céntrico"]
+      ],
+      perceptualCategories: [
+        cats["Instagrammeable"],
+        cats["Estilo vintage"]
+      ],
       images:[
         "https://images.unsplash.com/photo-1547046875-711112849fd0",
         "https://images.unsplash.com/photo-1556911073-52527ac437f0",
@@ -166,12 +198,19 @@ async function seed() {
         {rating:5,comment:"Un clásico, con tango y sabor.",categories:["Tradicional"]}
       ]
     },
-    // 6 más (Seis Montes, Patrimonio, Oro del Rhin, Escaramuza, Sometimes Sunday, Mop)
     {
       name:"Seis Montes Tostadores", address:"Córdoba, Cordon",
       location:{lat:-34.9085, lng:-56.180},
       description:"Tostador + cafetería, ambiente vintage y moderno.",
-      categories:["WiFi","Opciones vegetarianas"], perceptualCategories:["Estilo minimalista"],
+      categories: [
+        cats["WiFi"],
+        cats["Espacio techado"],  
+        cats["Céntrico"]
+      ],
+      perceptualCategories: [
+        cats["Instagrammeable"],
+        cats["Estilo vintage"]
+      ],
       images:[
         "https://images.unsplash.com/photo-1532634896-26909d0d1aed",
         "https://images.unsplash.com/photo-1560448204-53e8d8dd77e0",
@@ -184,7 +223,15 @@ async function seed() {
       name:"Café Patrimonio", address:"Córdoba, Cordon",
       location:{lat:-34.909, lng:-56.181},
       description:"Rooftop con vista, tostado especial y brunch.",
-      categories:["Al aire libre","Espacio tranquilo"], perceptualCategories:["Ambiente relajado"],
+      categories: [
+        cats["WiFi"],
+        cats["Espacio techado"], 
+        cats["Céntrico"]
+      ],
+      perceptualCategories: [
+        cats["Instagrammeable"],
+        cats["Estilo vintage"]
+      ],
       images:[
         "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
         "https://images.unsplash.com/photo-1509042239860-f550ce710b93",
@@ -197,7 +244,15 @@ async function seed() {
       name:"Oro del Rhin", address:"Pocitos",
       location:{lat:-34.915, lng:-56.150},
       description:"Confitería de repostería alemana histórica.",
-      categories:["Opciones vegetarianas","Céntrico"], perceptualCategories:["Tradicional"],
+      categories: [
+        cats["WiFi"],
+        cats["Espacio techado"], 
+        cats["Céntrico"]
+      ],
+      perceptualCategories: [
+        cats["Instagrammeable"],
+        cats["Estilo vintage"]
+      ],
       images:[
         "https://images.unsplash.com/photo-1511988617509-a57c8a288659",
         "https://images.unsplash.com/photo-1504917595217-2bfa64f7c482",
@@ -210,7 +265,15 @@ async function seed() {
       name:"Escaramuza", address:"Cordón",
       location:{lat:-34.9095, lng:-56.182},
       description:"Café librería, ideal para leer y relajarse.",
-      categories:["Espacio para trabajar","Tranquilo"], perceptualCategories:["Con libros"],
+      categories: [
+        cats["WiFi"],
+        cats["Espacio techado"],
+        cats["Céntrico"]
+      ],
+      perceptualCategories: [
+        cats["Instagrammeable"],
+        cats["Estilo vintage"]
+      ],
       images:[
         "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
         "https://images.unsplash.com/photo-1493711662062-fa541adb3fc8",
@@ -223,7 +286,15 @@ async function seed() {
       name:"Sometimes Sunday", address:"Ciudad Vieja",
       location:{lat:-34.905, lng:-56.195},
       description:"Café abierto domingo, brunch ecléctico.",
-      categories:["Abre temprano","Apto nómades digitales"], perceptualCategories:["Hipster"],
+      categories: [
+        cats["WiFi"],
+        cats["Espacio techado"],
+        cats["Céntrico"]
+      ],
+      perceptualCategories: [
+        cats["Instagrammeable"],
+        cats["Estilo vintage"]
+      ],
       images:[
         "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
         "https://images.unsplash.com/photo-1525097487452-6278ff080c31",
@@ -236,7 +307,15 @@ async function seed() {
       name:"Gold Of The Rhine", address:"Punta Carretas",
       location:{lat:-34.928, lng:-56.188},
       description:"Café moderno, ideal para trabajar y relajarse.",
-      categories:["WiFi","Espacio techado"], perceptualCategories:["Digital nomad"],
+      categories: [
+        cats["WiFi"],
+        cats["Espacio techado"],
+        cats["Céntrico"]
+      ],
+      perceptualCategories: [
+        cats["Instagrammeable"],
+        cats["Estilo vintage"]
+      ],
       images:[
         "https://images.unsplash.com/photo-1509042239860-f550ce710b93",
         "https://images.unsplash.com/photo-1511988617509-a57c8a288659",
@@ -246,7 +325,7 @@ async function seed() {
       reviews:[{rating:5,comment:"Muy buen ambiente para trabajar.",categories:["Digital nomad"]}]
     },
     {
-      name: "La Farmacia Café",  // tilde en Café
+      name: "La Farmacia Café",  
       address: "Ciudad Vieja",
       description: "Antiguo local estilo farmacia transformado en café boutique.",
       location: { lat: -34.906, lng: -56.199 },
