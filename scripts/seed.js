@@ -105,6 +105,147 @@ async function seed() {
   // 4) Cafés de prueba
   const cafeDefs = [
     {
+      name:"La Farmacia Café", address:"Ciudad Vieja, Montevideo",
+      location:{lat:-34.906, lng:-56.199},
+      description:"Antiguo local estilo farmacia transformado en café boutique.",
+      categories:["WiFi","Tiene enchufes","Céntrico"], perceptualCategories:["Instagrammeable","Estilo vintage"],
+      images:[
+        "https://images.unsplash.com/photo-1586985289384-a4155223d1d5",
+        "https://images.unsplash.com/photo-1523942839745-7848d43b21b5",
+        "https://images.unsplash.com/photo-1600464209074-2d7e5f548a2a"
+      ],
+      menu:[{name:"Flat White",price:190},{name:"Alfajor artesanal",price:160}],
+      reviews:[
+        {rating:5,comment:"Lugar mágico con café exquisito.",categories:["Estilo vintage"]},
+        {rating:4,comment:"Ambiente genial para fotos.",categories:["Instagrammeable"]}
+      ]
+    },
+    {
+      name:"Culto Café", address:"Córdoba y Pablo de María, Córdoba",
+      location:{lat:-34.908, lng:-56.175},
+      description:"Espacio industrial, especialidad en tueste y sabor.",
+      categories:["WiFi","Espacio para trabajar","Opciones vegetarianas"], perceptualCategories:["Ambiente relajado"],
+      images:[
+        "https://images.unsplash.com/photo-1533777324565-a040eb52fac2",
+        "https://images.unsplash.com/photo-1544060747-2bb51a19a0af",
+        "https://images.unsplash.com/photo-1611411117684-5f2d8e5abef2",
+        "https://images.unsplash.com/photo-1533777324565-a040eb52fac2"
+      ],
+      menu:[{name:"Americano",price:150},{name:"Bagel vegano",price:200}],
+      reviews:[
+        {rating:5,comment:"Excelente tueste y atención.",categories:["Ambiente relajado"]}
+      ]
+    },
+    {
+      name:"La Linda Bakery", address:"Punta Carretas, Montevideo",
+      location:{lat:-34.929, lng:-56.188},
+      description:"Panadería y café con patio interior y brunch.",
+      categories:["Al aire libre","Opciones vegetarianas"], perceptualCategories:["Con plantas"],
+      images:[
+        "https://images.unsplash.com/photo-1560448204-53e8d8dd77e0",
+        "https://images.unsplash.com/photo-1586190848861-99aa4a171e90",
+        "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4"
+      ],
+      menu:[{name:"Brunch completo",price:320},{name:"Jugo natural",price:140}],
+      reviews:[
+        {rating:5,comment:"Perfecto para una mañana relajada.",categories:["Con plantas"]}
+      ]
+    },
+    {
+      name:"Bar Facal", address:"18 de Julio, Centro",
+      location:{lat:-34.902, lng:-56.190},
+      description:"Cafetería tradicional con show de tango al mediodía.",
+      categories:["Céntrico","Reservas"], perceptualCategories:["Tradicional"],
+      images:[
+        "https://images.unsplash.com/photo-1547046875-711112849fd0",
+        "https://images.unsplash.com/photo-1556911073-52527ac437f0",
+        "https://images.unsplash.com/photo-1562967916-eb82221dfb2d"
+      ],
+      menu:[{name:"Cafe con leche",price:130},{name:"Medialuna",price:80}],
+      reviews:[
+        {rating:5,comment:"Un clásico, con tango y sabor.",categories:["Tradicional"]}
+      ]
+    },
+    // 6 más (Seis Montes, Patrimonio, Oro del Rhin, Escaramuza, Sometimes Sunday, Mop)
+    {
+      name:"Seis Montes Tostadores", address:"Córdoba, Cordon",
+      location:{lat:-34.9085, lng:-56.180},
+      description:"Tostador + cafetería, ambiente vintage y moderno.",
+      categories:["WiFi","Opciones vegetarianas"], perceptualCategories:["Estilo minimalista"],
+      images:[
+        "https://images.unsplash.com/photo-1532634896-26909d0d1aed",
+        "https://images.unsplash.com/photo-1560448204-53e8d8dd77e0",
+        "https://images.unsplash.com/photo-1573164574398-3f31d17c3f8b"
+      ],
+      menu:[{name:"Pour over",price:200}],
+      reviews:[{rating:5,comment:"Los mejores granos de Montevideo.",categories:["Especialistas en café"]}]
+    },
+    {
+      name:"Café Patrimonio", address:"Córdoba, Cordon",
+      location:{lat:-34.909, lng:-56.181},
+      description:"Rooftop con vista, tostado especial y brunch.",
+      categories:["Al aire libre","Espacio tranquilo"], perceptualCategories:["Ambiente relajado"],
+      images:[
+        "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
+        "https://images.unsplash.com/photo-1509042239860-f550ce710b93",
+        "https://images.unsplash.com/photo-1529692236671-f1a593e35340"
+      ],
+      menu:[{name:"Avocado toast",price:280}],
+      reviews:[{rating:4,comment:"Buena vista y tranquilo.",categories:["Ambiente relajado"]}]
+    },
+    {
+      name:"Oro del Rhin", address:"Pocitos",
+      location:{lat:-34.915, lng:-56.150},
+      description:"Confitería de repostería alemana histórica.",
+      categories:["Opciones vegetarianas","Céntrico"], perceptualCategories:["Tradicional"],
+      images:[
+        "https://images.unsplash.com/photo-1511988617509-a57c8a288659",
+        "https://images.unsplash.com/photo-1504917595217-2bfa64f7c482",
+        "https://images.unsplash.com/photo-1504674900247-0877df9cc836"
+      ],
+      menu:[{name:"Strudel manzana",price:220}],
+      reviews:[{rating:5,comment:"Pastelería alemana fantástica.",categories:["Tradicional"]}]
+    },
+    {
+      name:"Escaramuza", address:"Cordón",
+      location:{lat:-34.9095, lng:-56.182},
+      description:"Café librería, ideal para leer y relajarse.",
+      categories:["Espacio para trabajar","Tranquilo"], perceptualCategories:["Con libros"],
+      images:[
+        "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
+        "https://images.unsplash.com/photo-1493711662062-fa541adb3fc8",
+        "https://images.unsplash.com/photo-1519681393784-d120267933ba"
+      ],
+      menu:[{name:"Latte",price:180},{name:"Torta casera",price:200}],
+      reviews:[{rating:5,comment:"Maravilloso para pasar la tarde.",categories:["Con libros"]}]
+    },
+    {
+      name:"Sometimes Sunday", address:"Ciudad Vieja",
+      location:{lat:-34.905, lng:-56.195},
+      description:"Café abierto domingo, brunch ecléctico.",
+      categories:["Abre temprano","Apto nómades digitales"], perceptualCategories:["Hipster"],
+      images:[
+        "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+        "https://images.unsplash.com/photo-1525097487452-6278ff080c31",
+        "https://images.unsplash.com/photo-1559847844-5315695d3a63"
+      ],
+      menu:[{name:"Pancakes",price:260}],
+      reviews:[{rating:4,comment:"Muy trendy y buen café.",categories:["Hipster"]}]
+    },
+    {
+      name:"Gold Of The Rhine", address:"Punta Carretas",
+      location:{lat:-34.928, lng:-56.188},
+      description:"Café moderno, ideal para trabajar y relajarse.",
+      categories:["WiFi","Espacio techado"], perceptualCategories:["Digital nomad"],
+      images:[
+        "https://images.unsplash.com/photo-1509042239860-f550ce710b93",
+        "https://images.unsplash.com/photo-1511988617509-a57c8a288659",
+        "https://images.unsplash.com/photo-1560448204-53e8d8dd77e0"
+      ],
+      menu:[{name:"Cold brew",price:200}],
+      reviews:[{rating:5,comment:"Muy buen ambiente para trabajar.",categories:["Digital nomad"]}]
+    },
+    {
       name: "La Farmacia Café",  // tilde en Café
       address: "Ciudad Vieja",
       description: "Antiguo local estilo farmacia transformado en café boutique.",

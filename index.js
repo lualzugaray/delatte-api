@@ -36,6 +36,10 @@ app.use("/api/clients", clientsRoutes);
 import managersRoutes from "./routes/managers.js";
 app.use("/api/managers", managersRoutes);
 
+import adminRoutes from "./routes/admin.js";
+app.use("/admin", adminRoutes);
+
+
 // Conexión a MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
