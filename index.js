@@ -28,10 +28,10 @@ import categoriesRoutes from "./routes/categories.js";
 app.use("/api/categories", categoriesRoutes);
 
 import reviewsRoutes from "./routes/reviews.js";
-app.use("/reviews", reviewsRoutes);
+app.use("/api/reviews", reviewsRoutes);
 
 import clientsRoutes from "./routes/clients.js";
-app.use("/clients", clientsRoutes);
+app.use("/api/clients", clientsRoutes);
 
 import managersRoutes from "./routes/managers.js";
 app.use("/api/managers", managersRoutes);
