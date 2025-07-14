@@ -5,6 +5,7 @@ import Cafe from "../models/Cafe.js";
 import Category from "../models/Category.js";
 import isAdmin from "../middlewares/isAdmin.js";
 import verifyAuth0 from "../middlewares/verifyAuth0.js";
+import { updateAverageRating } from "../utils/ratings.js";
 
 const router = express.Router();
 
@@ -19,6 +20,7 @@ router.get("/", async (req, res) => {
 
     const reviews = await Review.find({ cafeId })
       .populate("clientId", "firstName lastName profilePicture")
+      .populate("categories", "name")
       .sort({ createdAt: -1 });
 
     res.json(reviews);
@@ -34,6 +36,7 @@ router.post("/", verifyAuth0, async (req, res) => {
       cafeId,
       rating,
       comment,
+      image,
       selectedCategoryIds = [],
       newCategoryNames = [],
     } = req.body;
@@ -43,6 +46,8 @@ router.post("/", verifyAuth0, async (req, res) => {
     }
 
     const client = await Client.findOne({ auth0Id: req.auth.sub });
+    console.log(client);
+    console.log(req.auth);
     if (!client) return res.status(404).json({ error: "Client not found" });
 
     const clientId = client._id;
@@ -54,7 +59,6 @@ router.post("/", verifyAuth0, async (req, res) => {
         .json({ error: "You already left a review for this café" });
     }
 
-    // Crear categorías nuevas sugeridas por el cliente
     const createdCategories = await Promise.all(
       newCategoryNames.map(async (name) => {
         const normalizedName = name.trim().toLowerCase();
@@ -80,17 +84,16 @@ router.post("/", verifyAuth0, async (req, res) => {
       ...createdCategories.filter(Boolean).map((cat) => cat._id),
     ];
 
-    // Crear y guardar la nueva reseña
     const review = new Review({
       cafeId,
       clientId,
       rating,
       comment,
+      image,
       categories: validCategoryIds,
     });
     await review.save();
 
-    // 🔁 Agregar perceptual categories activas al café
     const perceptualCats = await Category.find({
       _id: { $in: validCategoryIds },
       type: "perceptual",
@@ -105,14 +108,15 @@ router.post("/", verifyAuth0, async (req, res) => {
 
     if (toAdd.length) {
       cafe.perceptualCategories.push(...toAdd);
-      await cafe.save();
     }
 
-    // Recalcular rating promedio
-    const reviews = await Review.find({ cafeId });
-    const total = reviews.reduce((acc, r) => acc + r.rating, 0);
-    const average = total / reviews.length;
-    await Cafe.findByIdAndUpdate(cafeId, { averageRating: average });
+    if (image && image.trim()) {
+      if (!cafe.gallery.includes(image)) {
+        cafe.gallery.push(image);
+      }
+    }
+    await cafe.save();
+    await updateAverageRating(cafeId);
 
     res.status(201).json({ message: "Review created", review });
   } catch (err) {
@@ -128,6 +132,24 @@ router.delete("/:id", verifyAuth0, isAdmin, async (req, res) => {
     if (!deleted) {
       return res.status(404).json({ error: "Review not found" });
     }
+
+    if (deleted.image && deleted.image.trim()) {
+      const cafe = await Cafe.findById(deleted.cafeId);
+      if (cafe) {
+        const otherReviewsWithSameImage = await Review.findOne({
+          cafeId: deleted.cafeId,
+          image: deleted.image,
+          _id: { $ne: deleted._id }
+        });
+
+        if (!otherReviewsWithSameImage) {
+          cafe.gallery = cafe.gallery.filter(img => img !== deleted.image);
+          await cafe.save();
+        }
+      }
+    }
+
+    await updateAverageRating(deleted.cafeId);
 
     res.json({ message: "Review deleted", review: deleted });
   } catch (err) {
