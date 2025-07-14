@@ -1,7 +1,7 @@
 import { checkSchema } from "express-validator";
 
 const scheduleValidation = checkSchema({
-  ...["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+  ...["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
     .flatMap(day => ([
       {
         [`schedule.${day}.open`]: {
