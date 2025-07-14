@@ -1,9 +1,7 @@
 export function isCafeOpenNow(schedule) {
     const now = new Date();
     const dayNames = [
-      "sunday", "monday", "tuesday", "wednesday",
-      "thursday", "friday", "saturday"
-    ];
+      "domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
     const currentDay = dayNames[now.getDay()];
     const currentTime = now.toTimeString().slice(0, 5); 
   
