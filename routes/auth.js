@@ -1,4 +1,3 @@
-// routes/auth.js
 import express from "express";
 import verifyAuth0 from "../middlewares/verifyAuth0.js";
 import User from "../models/User.js";
@@ -7,7 +6,6 @@ import Manager from "../models/Manager.js";
 
 const router = express.Router();
 
-// 🔐 LOGIN usando Auth0
 router.post("/auth0-login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -24,7 +22,7 @@ router.post("/auth0-login", async (req, res) => {
           audience: process.env.AUTH0_AUDIENCE,
           client_id: process.env.AUTH0_BACKEND_CLIENT_ID,
           client_secret: process.env.AUTH0_BACKEND_CLIENT_SECRET,
-          connection: "Username-Password-Authentication", // ✅ necesario para password login
+          connection: "Username-Password-Authentication",
         }),
       }
     );
@@ -45,7 +43,6 @@ router.post("/auth0-login", async (req, res) => {
   }
 });
 
-// 🤝 Sincronizar CLIENTE
 router.post("/sync-client", verifyAuth0, async (req, res) => {
   const { email, firstName, lastName, profilePicture } = req.body;
   const auth0Id = req.auth.sub;
@@ -62,7 +59,7 @@ router.post("/sync-client", verifyAuth0, async (req, res) => {
       await user.save();
 
       const client = new Client({
-        auth0Id, // guardamos sub de Auth0
+        auth0Id,
         firstName,
         lastName,
         profilePicture,
@@ -76,7 +73,6 @@ router.post("/sync-client", verifyAuth0, async (req, res) => {
   }
 });
 
-// 🤝 Sincronizar MANAGER
 router.post("/sync-manager", verifyAuth0, async (req, res) => {
   const { email, firstName, lastName, profilePicture } = req.body;
   const auth0Id = req.auth.sub;
@@ -93,7 +89,7 @@ router.post("/sync-manager", verifyAuth0, async (req, res) => {
       await user.save();
 
       const manager = new Manager({
-        auth0Id, 
+        auth0Id,
         fullName: `${firstName} ${lastName}`,
         phone: "",
       });

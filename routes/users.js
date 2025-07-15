@@ -10,10 +10,6 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/role", verifyAuth0, async (req, res) => {
-    console.log("Headers:", req.headers);
-    console.log("Token payload recibido:", req.auth); 
-  
-
   const email = req.auth.email || req.auth["https://delatte.com/email"] || req.auth["email"];
   if (!email) return res.status(400).json({ error: "Email no disponible en el token" });
 

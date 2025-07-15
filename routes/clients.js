@@ -6,7 +6,6 @@ import { body, validationResult } from "express-validator";
 
 const router = express.Router();
 
-// GET /clients/me/favorites
 router.get("/me/favorites", verifyAuth0, async (req, res) => {
   try {
     const client = await Client.findOne({ auth0Id: req.auth.sub }).populate("favorites");
@@ -18,7 +17,6 @@ router.get("/me/favorites", verifyAuth0, async (req, res) => {
   }
 });
 
-// POST /clients/me/favorites/:cafeId
 router.post("/me/favorites/:cafeId", verifyAuth0, async (req, res) => {
   try {
     const client = await Client.findOne({ auth0Id: req.auth.sub });
@@ -39,7 +37,6 @@ router.post("/me/favorites/:cafeId", verifyAuth0, async (req, res) => {
   }
 });
 
-// DELETE /clients/me/favorites/:cafeId
 router.delete("/me/favorites/:cafeId", verifyAuth0, async (req, res) => {
   try {
     const client = await Client.findOne({ auth0Id: req.auth.sub });
@@ -56,7 +53,6 @@ router.delete("/me/favorites/:cafeId", verifyAuth0, async (req, res) => {
   }
 });
 
-// GET /clients/me
 router.get("/me", verifyAuth0, async (req, res) => {
   try {
     const client = await Client.findOne({ auth0Id: req.auth.sub }).populate("favorites");
@@ -68,7 +64,6 @@ router.get("/me", verifyAuth0, async (req, res) => {
   }
 });
 
-// PUT /clients/me
 router.put("/me",
   verifyAuth0,
   [
@@ -100,7 +95,6 @@ router.put("/me",
   }
 );
 
-// DELETE /clients/me
 router.delete("/me", verifyAuth0, async (req, res) => {
   try {
     const client = await Client.findOneAndDelete({ auth0Id: req.auth.sub });
@@ -112,7 +106,6 @@ router.delete("/me", verifyAuth0, async (req, res) => {
   }
 });
 
-// PATCH /clients/me/preferences
 router.patch("/me/preferences", verifyAuth0, async (req, res) => {
   try {
     const { preferences } = req.body;
@@ -131,7 +124,6 @@ router.patch("/me/preferences", verifyAuth0, async (req, res) => {
   }
 });
 
-// PATCH /clients/me/social-links
 router.patch("/me/social-links", verifyAuth0, async (req, res) => {
   try {
     const { socialLinks } = req.body;
@@ -150,7 +142,6 @@ router.patch("/me/social-links", verifyAuth0, async (req, res) => {
   }
 });
 
-// Agregalo en tu archivo de rutas de clients:
 router.get("/:id", async (req, res) => {
   try {
     const client = await Client.findById(req.params.id);

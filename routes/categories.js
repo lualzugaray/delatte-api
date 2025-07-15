@@ -5,12 +5,11 @@ import verifyAuth0 from "../middlewares/verifyAuth0.js";
 
 const router = express.Router();
 
-// GET /categories — obtener todas las categorías activas
 router.get("/", async (req, res) => {
   try {
     const query = { isActive: true };
     if (req.query.type) {
-      query.type = req.query.type; // "perceptual" o "structural"
+      query.type = req.query.type;
     }
     const categories = await Category.find(query);
     res.json(categories);
@@ -19,7 +18,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// POST /categories — crear una nueva categoría (solo admin)
 router.post("/", verifyAuth0, isAdmin, async (req, res) => {
   try {
     const { name, description } = req.body;
@@ -40,7 +38,6 @@ router.post("/", verifyAuth0, isAdmin, async (req, res) => {
   }
 });
 
-// PUT /categories/:id — editar categoría (solo admin)
 router.put("/:id", verifyAuth0, isAdmin, async (req, res) => {
   try {
     const { name, description, isActive } = req.body;
@@ -59,7 +56,6 @@ router.put("/:id", verifyAuth0, isAdmin, async (req, res) => {
   }
 });
 
-// POST /categories/suggest — sugerencia estructural por parte del manager
 router.post("/suggest", verifyAuth0, async (req, res) => {
   try {
     const { name, description } = req.body;
@@ -96,7 +92,6 @@ router.post("/suggest", verifyAuth0, async (req, res) => {
   }
 });
 
-// GET /categories/suggested?role=manager|client — ver sugerencias filtradas
 router.get("/suggested", verifyAuth0, isAdmin, async (req, res) => {
   try {
     const roleFilter = req.query.role;
@@ -112,7 +107,6 @@ router.get("/suggested", verifyAuth0, isAdmin, async (req, res) => {
   }
 });
 
-// PATCH /categories/:id/approve — aprobar una categoría sugerida
 router.patch("/:id/approve", verifyAuth0, isAdmin, async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
@@ -131,7 +125,6 @@ router.patch("/:id/approve", verifyAuth0, isAdmin, async (req, res) => {
   }
 });
 
-// DELETE /categories/:id — eliminar sugerencia ofensiva o no válida
 router.delete("/:id", verifyAuth0, isAdmin, async (req, res) => {
   try {
     const deleted = await Category.findByIdAndDelete(req.params.id);

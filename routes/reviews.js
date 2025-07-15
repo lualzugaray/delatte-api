@@ -9,16 +9,16 @@ import { updateAverageRating } from "../utils/ratings.js";
 
 const router = express.Router();
 
-// GET /reviews?cafeId=... — obtener reviews públicas
 router.get("/", async (req, res) => {
   try {
     const { cafeId } = req.query;
+    let query = {};
 
-    if (!cafeId) {
-      return res.status(400).json({ error: "Missing cafeId in query params" });
+    if (cafeId) {
+      query.cafeId = cafeId;
     }
 
-    const reviews = await Review.find({ cafeId })
+    const reviews = await Review.find(query)
       .populate("clientId", "firstName lastName profilePicture")
       .populate("categories", "name")
       .sort({ createdAt: -1 });
@@ -29,7 +29,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// POST /reviews — crear una reseña (cliente autenticado)
 router.post("/", verifyAuth0, async (req, res) => {
   try {
     const {
@@ -124,7 +123,6 @@ router.post("/", verifyAuth0, async (req, res) => {
   }
 });
 
-// DELETE /reviews/:id — eliminar reseña (admin)
 router.delete("/:id", verifyAuth0, isAdmin, async (req, res) => {
   try {
     const deleted = await Review.findByIdAndDelete(req.params.id);

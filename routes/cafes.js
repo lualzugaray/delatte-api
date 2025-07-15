@@ -9,7 +9,6 @@ import { normalizeText } from "../utils/text.js";
 
 const router = express.Router();
 
-// GET /api/cafes
 router.get("/", async (req, res) => {
   try {
     const {
@@ -34,9 +33,9 @@ router.get("/", async (req, res) => {
       const matchedCatIds = matchedCats.map(cat => cat._id);
 
       match.$or = [
-        { nameNormalized:        regex },
+        { nameNormalized: regex },
         { descriptionNormalized: regex },
-        { categories:           { $in: matchedCatIds } },
+        { categories: { $in: matchedCatIds } },
         { perceptualCategories: { $in: matchedCatIds } }
       ];
     }
@@ -53,10 +52,10 @@ router.get("/", async (req, res) => {
       { $match: match },
       {
         $lookup: {
-          from:         "reviews",
-          localField:   "_id",
+          from: "reviews",
+          localField: "_id",
           foreignField: "cafeId",
-          as:           "reviews",
+          as: "reviews",
         },
       },
       {
@@ -66,16 +65,16 @@ router.get("/", async (req, res) => {
       },
       {
         $project: {
-          name:          1,
-          address:       1,
-          location:      1,
-          description:   1,
-          categories:    1,
-          gallery:       1,
-          coverImage:    1,
+          name: 1,
+          address: 1,
+          location: 1,
+          description: 1,
+          categories: 1,
+          gallery: 1,
+          coverImage: 1,
           averageRating: 1,
-          reviewsCount:  1,
-          schedule:      1,
+          reviewsCount: 1,
+          schedule: 1,
         },
       },
       {
@@ -84,7 +83,7 @@ router.get("/", async (req, res) => {
             ? { averageRating: -1 }
             : { [sortBy]: -1 }
       },
-      { $skip:  parseInt(skip,  10) },
+      { $skip: parseInt(skip, 10) },
       { $limit: parseInt(limit, 10) },
     ];
 
@@ -101,7 +100,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// POST /api/cafes/suggestions
 router.post("/suggestions", verifyAuth0, async (req, res) => {
   try {
     const { name } = req.body;
@@ -121,8 +119,8 @@ router.post("/suggestions", verifyAuth0, async (req, res) => {
 
     const newCat = new Category({
       name,
-      type:       "suggested",
-      isActive:   false,
+      type: "suggested",
+      isActive: false,
       suggestedBy: req.auth.sub
     });
 
@@ -134,7 +132,6 @@ router.post("/suggestions", verifyAuth0, async (req, res) => {
   }
 });
 
-// GET /api/cafes/:id — detalle de un café
 router.get("/:id", async (req, res) => {
   try {
     const cafe = await Cafe.findById(req.params.id)
@@ -142,10 +139,10 @@ router.get("/:id", async (req, res) => {
       .populate("menu")
       .populate("managerId", "fullName")
       .populate({
-        path:    "reviews",
-        select:  "rating comment createdAt clientId",
+        path: "reviews",
+        select: "rating comment createdAt clientId",
         populate: {
-          path:   "clientId",
+          path: "clientId",
           select: "firstName lastName profilePicture",
         },
         options: { sort: { createdAt: -1 } },
@@ -162,7 +159,6 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// POST /api/cafes/:id/menu — agregar ítems al menú
 router.post("/:id/menu", verifyAuth0, async (req, res) => {
   try {
     const { items } = req.body;
@@ -190,7 +186,6 @@ router.post("/:id/menu", verifyAuth0, async (req, res) => {
   }
 });
 
-// PUT /api/cafes/:cafeId/menu/:itemId — editar ítem del menú
 router.put("/:cafeId/menu/:itemId", verifyAuth0, async (req, res) => {
   try {
     const manager = await Manager.findOne({ auth0Id: req.auth.sub });
@@ -225,7 +220,6 @@ router.put("/:cafeId/menu/:itemId", verifyAuth0, async (req, res) => {
   }
 });
 
-// DELETE /api/cafes/:cafeId/menu/:itemId — eliminar ítem del menú
 router.delete("/:cafeId/menu/:itemId", verifyAuth0, async (req, res) => {
   try {
     const manager = await Manager.findOne({ auth0Id: req.auth.sub });
@@ -260,7 +254,6 @@ router.delete("/:cafeId/menu/:itemId", verifyAuth0, async (req, res) => {
   }
 });
 
-// PATCH /api/cafes/:id/active — activar/desactivar café (admin)
 router.patch("/:id/active", verifyAuth0, isAdmin, async (req, res) => {
   try {
     const { isActive } = req.body;

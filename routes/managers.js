@@ -16,7 +16,6 @@ router.use((req, res, next) => {
 });
 
 
-// GET /managers/me — obtener perfil del manager
 router.get("/me", verifyAuth0, async (req, res) => {
   try {
     const manager = await Manager.findOne({ auth0Id: req.auth.sub }).populate("assignedCafe");
@@ -28,7 +27,6 @@ router.get("/me", verifyAuth0, async (req, res) => {
   }
 });
 
-// PATCH /managers/me — actualizar info del manager
 router.patch("/me", verifyAuth0, async (req, res) => {
   try {
     const updates = req.body;
@@ -45,7 +43,6 @@ router.patch("/me", verifyAuth0, async (req, res) => {
   }
 });
 
-// GET /managers/me/cafe
 router.get("/me/cafe", verifyAuth0, async (req, res) => {
   const manager = await Manager.findOne({ auth0Id: req.auth?.sub });
 
@@ -62,8 +59,6 @@ router.get("/me/cafe", verifyAuth0, async (req, res) => {
   res.json(cafe);
 });
 
-
-// GET /managers/me/stats
 router.get("/me/stats", verifyAuth0, async (req, res) => {
   try {
     const manager = await Manager.findOne({ auth0Id: req.auth.sub });
@@ -126,7 +121,6 @@ router.post("/me/reviews/:reviewId/report", verifyAuth0, async (req, res) => {
     const cafe = await Cafe.findOne({ managerId: manager._id });
     if (!cafe) return res.status(404).json({ error: "Café not found" });
 
-    // Validar que la review existe y pertenece a este café
     const review = await Review.findOne({ _id: reviewId, cafeId: cafe._id });
     if (!review) {
       return res.status(404).json({ error: "Reseña no encontrada para tu café" });
@@ -150,7 +144,6 @@ router.post("/me/reviews/:reviewId/report", verifyAuth0, async (req, res) => {
   }
 });
 
-// PUT /managers/me/cafe — actualizar su cafetería
 router.put("/me/cafe", verifyAuth0, async (req, res) => {
   try {
     const manager = await Manager.findOne({ auth0Id: req.auth.sub });
@@ -172,7 +165,7 @@ router.put("/me/cafe", verifyAuth0, async (req, res) => {
             recalculated[day] = { open, close, isClosed: !(open && close) };
           }
           cafe.schedule = recalculated;
-        } 
+        }
         else if (field === "categories" && updates.schedule) {
           const categoryDocs = await Category.find({ _id: { $in: updates.categories }, isActive: true });
 
@@ -206,7 +199,6 @@ router.put("/me/cafe", verifyAuth0, async (req, res) => {
   }
 });
 
-// PATCH /managers/me/cafe/active — activar/desactivar su café
 router.patch("/me/cafe/active", verifyAuth0, async (req, res) => {
   try {
     const manager = await Manager.findOne({ auth0Id: req.auth.sub });
@@ -227,7 +219,6 @@ router.patch("/me/cafe/active", verifyAuth0, async (req, res) => {
   }
 });
 
-// PATCH /managers/me/cafe/schedule
 router.patch("/me/cafe/schedule", verifyAuth0, scheduleValidation, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -287,7 +278,7 @@ router.post("/me/cafe", verifyAuth0, async (req, res) => {
 
     const newCafe = new Cafe({
       ...req.body,
-      schedule: scheduleObj,    
+      schedule: scheduleObj,
       managerId: manager._id,
     });
 
