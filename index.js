@@ -1,4 +1,3 @@
-// index.js
 import express from 'express';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
@@ -13,9 +12,8 @@ app.use(express.json());
 import authRoutes from "./routes/auth.js";
 app.use("/api", authRoutes);
 
-// Ruta para probar que el servidor funciona
 app.get("/", (req, res) => {
-  res.send("Servidor funcionando 👌");
+  res.send("Servidor funcionando");
 });
 
 import userRoutes from "./routes/users.js";
@@ -37,10 +35,8 @@ import managersRoutes from "./routes/managers.js";
 app.use("/api/managers", managersRoutes);
 
 import adminRoutes from "./routes/admin.js";
-app.use("/admin", adminRoutes);
+app.use("/api/admin", adminRoutes);
 
-
-// Conexión a MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('Conectado a MongoDB');
