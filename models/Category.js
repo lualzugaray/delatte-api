@@ -6,7 +6,7 @@ const categorySchema = new mongoose.Schema({
   isActive: { type: Boolean, default: false },
   type: { type: String, enum: ["structural", "perceptual"], required: true },
   createdByClient: { type: Boolean, default: false },
-  createdByManager: { type: Boolean, default: false }, // ✨ nuevo
+  createdByManager: { type: Boolean, default: false },
 });
 
 categorySchema.set("toJSON", {

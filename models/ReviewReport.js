@@ -1,4 +1,3 @@
-// models/ReviewReport.js
 import mongoose from "mongoose";
 
 const reviewReportSchema = new mongoose.Schema({

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const clientSchema = new mongoose.Schema({
-  auth0Id: { type: String, required: true, unique: true }, // ← String, no ObjectId
+  auth0Id: { type: String, required: true, unique: true },
   firstName: { type: String, required: true, trim: true, minlength: 2, maxlength: 50 },
   lastName: { type: String, trim: true, maxlength: 50 },
   profilePicture: {
