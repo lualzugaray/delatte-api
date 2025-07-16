@@ -5,6 +5,7 @@
   "description": "API REST para la plataforma Delatte. Gestiona usuarios, cafeterías, opiniones y acceso por roles (cliente, manager y admin).",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
