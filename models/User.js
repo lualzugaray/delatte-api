@@ -5,7 +5,13 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ["client", "manager", "admin"], required: true },
   lastAccess: { type: Date },
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true },
+  auth0Id: {
+    type: String,
+    unique: true,
+    sparse: true,
+    index: true,
+  },
 });
 
 export default mongoose.model("User", userSchema);
