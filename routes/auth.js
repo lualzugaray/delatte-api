@@ -1,5 +1,6 @@
 import express from "express";
 import verifyAuth0 from "../middlewares/verifyAuth0.js";
+import verifyAuth0Sync from "../middlewares/verifyAuth0Sync.js"; // NUEVO
 import User from "../models/User.js";
 import Client from "../models/Client.js";
 import Manager from "../models/Manager.js";
@@ -43,7 +44,7 @@ router.post("/auth0-login", async (req, res) => {
   }
 });
 
-router.post("/sync-client", verifyAuth0, async (req, res) => {
+router.post("/sync-client", verifyAuth0Sync, async (req, res) => {
   const { email, firstName, lastName, profilePicture } = req.body;
   const auth0Id = req.auth.sub;
 
@@ -73,7 +74,7 @@ router.post("/sync-client", verifyAuth0, async (req, res) => {
   }
 });
 
-router.post("/sync-manager", verifyAuth0, async (req, res) => {
+router.post("/sync-manager", verifyAuth0Sync, async (req, res) => {
   const { email, firstName, lastName, profilePicture } = req.body;
   const auth0Id = req.auth.sub;
 
