@@ -37,6 +37,10 @@ app.use("/api/managers", managersRoutes);
 import adminRoutes from "./routes/admin.js";
 app.use("/api/admin", adminRoutes);
 
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('Conectado a MongoDB');
