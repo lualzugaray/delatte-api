@@ -88,23 +88,23 @@ async function seed() {
         auth0Id: users.manager1.auth0Id,
         fullName: "Manager Uno",
         phone: "099111111",
-      });
-      const mgr2 = await Manager.create({
+    });
+    const mgr2 = await Manager.create({
         auth0Id: users.manager2.auth0Id,
         fullName: "Manager Dos",
         phone: "099222222",
-      });
-      const cli1 = await Client.create({
+    });
+    const cli1 = await Client.create({
         auth0Id: users.client1.auth0Id,
         firstName: "Cliente",
         lastName: "Uno",
-      });
-      const cli2 = await Client.create({
+    });
+    const cli2 = await Client.create({
         auth0Id: users.client2.auth0Id,
         firstName: "Cliente",
         lastName: "Dos",
-      });
-      
+    });
+
     console.log("🧑‍💼 Managers y 👤 Clients creados");
 
     const structuralCategoriesData = [
@@ -175,11 +175,11 @@ async function seed() {
             categories: [cats["Reservas"], cats["Céntrico"], cats["Opciones vegetarianas"]],
             perceptualCategories: [cats["Estilo vintage"], cats["Ambiente relajado"]],
             gallery: [
-                "https://images.unsplash.com/photo-1509042239860-f550ce710b93",
-                "https://images.unsplash.com/photo-1554180830-5e648d7f41c9",
-                "https://images.unsplash.com/photo-1529940027158-fededfe36677"
+                "https://images.pexels.com/photos/15110223/pexels-photo-15110223.jpeg",
+                "https://images.pexels.com/photos/4472870/pexels-photo-4472870.jpeg",
+                "https://images.pexels.com/photos/8165427/pexels-photo-8165427.jpeg"
             ],
-            coverImage: "https://images.unsplash.com/photo-1509042239860-f550ce710b93",
+            coverImage: "https://images.pexels.com/photos/15110223/pexels-photo-15110223.jpeg",
             menu: [],
             schedule: {
                 lunes: { open: "10:00", close: "16:00" },
@@ -215,11 +215,11 @@ async function seed() {
             categories: [cats["WiFi"], cats["Espacio para trabajar"], cats["Abre hasta tarde"]],
             perceptualCategories: [cats["Café de especialidad"], cats["Ideal para trabajar"], cats["Wi-Fi rápido"]],
             gallery: [
-                "https://images.unsplash.com/photo-1523942839745-7848d43b21b5",
-                "https://images.unsplash.com/photo-1524758631624-e2822e304c36",
-                "https://images.unsplash.com/photo-1533777324565-a040eb52fac2"
+                "https://images.pexels.com/photos/33179731/pexels-photo-33179731.jpeg",
+                "https://images.pexels.com/photos/33188113/pexels-photo-33188113.jpeg",
+                "https://images.pexels.com/photos/33193713/pexels-photo-33193713.jpeg"
             ],
-            coverImage: "https://images.unsplash.com/photo-1523942839745-7848d43b21b5",
+            coverImage: "https://images.pexels.com/photos/33179731/pexels-photo-33179731.jpeg",
             menu: [],
             schedule: {
                 lunes: { open: "08:00", close: "21:00" },
@@ -255,11 +255,11 @@ async function seed() {
             categories: [cats["WiFi"], cats["Al aire libre"], cats["Céntrico"]],
             perceptualCategories: [cats["Instagrammeable"], cats["Con plantas"], cats["Ambiente relajado"]],
             gallery: [
-                "https://images.unsplash.com/photo-1600464209074-2d7e5f548a2a",
-                "https://images.unsplash.com/photo-1547046875-711112849fd0",
-                "https://images.unsplash.com/photo-1622842182823-28bfbfba47e3"
+                "https://images.pexels.com/photos/4450335/pexels-photo-4450335.jpeg",
+                "https://images.pexels.com/photos/33202867/pexels-photo-33202867.jpeg",
+                "https://images.pexels.com/photos/33209701/pexels-photo-33209701.jpeg"
             ],
-            coverImage: "https://images.unsplash.com/photo-1600464209074-2d7e5f548a2a",
+            coverImage: "https://images.pexels.com/photos/4450335/pexels-photo-4450335.jpeg",
             menu: [],
             schedule: {
                 lunes: { open: "09:00", close: "20:00" },
@@ -293,13 +293,13 @@ async function seed() {
             description: "Clásico café fundado en 1877, ambiente vintage en el corazón de Ciudad Vieja.",
             location: { lat: -34.9070, lng: -56.2030 },
             categories: [cats["Céntrico"], cats["Abre temprano"], cats["Acepta tarjetas"]],
-            perceptualCategories: [cats["Estilo vintage"], cats["Tradicional"] ?? cats["Estilo vintage"], cats["Ambiente relajado"]],
+            perceptualCategories: [cats["Estilo vintage"], cats["Ambiente relajado"]],
             gallery: [
-                "https://images.unsplash.com/photo-1511988617509-a57c8a288659",
-                "https://images.unsplash.com/photo-1445116572660-236099ec97a0",
-                "https://images.unsplash.com/photo-1560448204-53e8d8dd77e0"
+                "https://images.pexels.com/photos/32440659/pexels-photo-32440659.jpeg",
+                "https://images.pexels.com/photos/3679601/pexels-photo-3679601.jpeg",
+                "https://images.pexels.com/photos/1551346/pexels-photo-1551346.jpeg"
             ],
-            coverImage: "https://images.unsplash.com/photo-1511988617509-a57c8a288659",
+            coverImage: "https://images.pexels.com/photos/32440659/pexels-photo-32440659.jpeg",
             menu: [],
             schedule: {
                 lunes: { open: "08:00", close: "19:00" },
@@ -323,7 +323,7 @@ async function seed() {
                     clientId: cli2._id,
                     rating: 4,
                     comment: "Muy lindo café tradicional, aunque el café en sí podría ser mejor.",
-                    categories: [cats["Tradicional"] ?? cats["Estilo vintage"]]
+                    categories: []
                 }
             ]
         },
@@ -335,11 +335,11 @@ async function seed() {
             categories: [cats["WiFi"], cats["Céntrico"], cats["Espacio techado"]],
             perceptualCategories: [cats["Instagrammeable"], cats["Estilo vintage"]],
             gallery: [
-                "https://images.unsplash.com/photo-1586985289384-a4155223d1d5",
-                "https://images.unsplash.com/photo-1533777324565-a040eb52fac2",
-                "https://images.unsplash.com/photo-1554180830-5e648d7f41c9"
+                "https://images.pexels.com/photos/904616/pexels-photo-904616.jpeg",
+                "https://images.pexels.com/photos/302896/pexels-photo-302896.jpeg",
+                "https://images.pexels.com/photos/2074130/pexels-photo-2074130.jpeg"
             ],
-            coverImage: "https://images.unsplash.com/photo-1586985289384-a4155223d1d5",
+            coverImage: "https://images.pexels.com/photos/904616/pexels-photo-904616.jpeg",
             menu: [],
             schedule: {
                 lunes: { open: "08:00", close: "20:00" },
@@ -375,11 +375,11 @@ async function seed() {
             categories: [cats["WiFi"], cats["Espacio para trabajar"], cats["Céntrico"]],
             perceptualCategories: [cats["Café de especialidad"], cats["Especialistas en café"], cats["Ambiente relajado"]],
             gallery: [
-                "https://images.unsplash.com/photo-1547046875-711112849fd0",
-                "https://images.unsplash.com/photo-1627807452369-a2cd0b5ca56f",
-                "https://images.unsplash.com/photo-1529940027158-fededfe36677"
+                "https://images.pexels.com/photos/3879495/pexels-photo-3879495.jpeg",
+                "https://images.pexels.com/photos/2396220/pexels-photo-2396220.jpeg",
+                "https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg"
             ],
-            coverImage: "https://images.unsplash.com/photo-1547046875-711112849fd0",
+            coverImage: "https://images.pexels.com/photos/3879495/pexels-photo-3879495.jpeg",
             menu: [],
             schedule: {
                 lunes: { open: "08:30", close: "20:00" },
@@ -413,13 +413,13 @@ async function seed() {
             description: "Bar y cafetín tradicional de barrio con más de un siglo de historia.",
             location: { lat: -34.9170, lng: -56.1570 },
             categories: [cats["Abre temprano"], cats["Ideal para ir en grupo"], cats["Espacio techado"]],
-            perceptualCategories: [cats["Tradicional"] ?? cats["Estilo vintage"], cats["Ambiente relajado"]],
+            perceptualCategories: [cats["Estilo vintage"], cats["Ambiente relajado"]],
             gallery: [
-                "https://images.unsplash.com/photo-1511988617509-a57c8a288659",
-                "https://images.unsplash.com/photo-1560448204-53e8d8dd77e0",
-                "https://images.unsplash.com/photo-1509042239860-f550ce710b93"
+                "https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg",
+                "https://images.pexels.com/photos/15110223/pexels-photo-15110223.jpeg",
+                "https://images.pexels.com/photos/4472870/pexels-photo-4472870.jpeg"
             ],
-            coverImage: "https://images.unsplash.com/photo-1511988617509-a57c8a288659",
+            coverImage: "https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg",
             menu: [],
             schedule: {
                 lunes: { open: "07:30", close: "23:00" },
@@ -437,7 +437,7 @@ async function seed() {
                     clientId: cli1._id,
                     rating: 4,
                     comment: "Clásico café de Pocitos, ideal para desayunar. Servicio rápido y porciones generosas.",
-                    categories: [cats["Tradicional"] ?? cats["Ambiente relajado"]]
+                    categories: [cats["Ambiente relajado"]]
                 },
                 {
                     clientId: cli2._id,
@@ -455,11 +455,11 @@ async function seed() {
             categories: [cats["Al aire libre"], cats["Espacio tranquilo"], cats["En barrio residencial"]],
             perceptualCategories: [cats["Ambiente relajado"], cats["Apto para niños"], cats["Con plantas"]],
             gallery: [
-                "https://images.unsplash.com/photo-1533777324565-a040eb52fac2",
-                "https://images.unsplash.com/photo-1600464209074-2d7e5f548a2a",
-                "https://images.unsplash.com/photo-1554180830-5e648d7f41c9"
+                "https://images.pexels.com/photos/8165427/pexels-photo-8165427.jpeg",
+                "https://images.pexels.com/photos/33179731/pexels-photo-33179731.jpeg",
+                "https://images.pexels.com/photos/33188113/pexels-photo-33188113.jpeg"
             ],
-            coverImage: "https://images.unsplash.com/photo-1533777324565-a040eb52fac2",
+            coverImage: "https://images.pexels.com/photos/33188113/pexels-photo-33188113.jpeg",
             menu: [],
             schedule: {
                 lunes: { open: "09:00", close: "19:30" },
@@ -495,11 +495,11 @@ async function seed() {
             categories: [cats["WiFi"], cats["Espacio tranquilo"], cats["Céntrico"]],
             perceptualCategories: [cats["Café de especialidad"], cats["Estilo minimalista"], cats["Ambiente relajado"]],
             gallery: [
-                "https://images.unsplash.com/photo-1622842182823-28bfbfba47e3",
-                "https://images.unsplash.com/photo-1547046875-711112849fd0",
-                "https://images.unsplash.com/photo-1523942839745-7848d43b21b5"
+                "https://images.pexels.com/photos/8165427/pexels-photo-8165427.jpeg",
+                "https://images.pexels.com/photos/33179731/pexels-photo-33179731.jpeg",
+                "https://images.pexels.com/photos/33188113/pexels-photo-33188113.jpeg"
             ],
-            coverImage: "https://images.unsplash.com/photo-1622842182823-28bfbfba47e3",
+            coverImage: "https://images.pexels.com/photos/8165427/pexels-photo-8165427.jpeg",
             menu: [],
             schedule: {
                 lunes: { open: "08:00", close: "18:00" },
@@ -529,11 +529,11 @@ async function seed() {
             categories: [cats["Espacio techado"], cats["Opciones vegetarianas"], cats["Cerca de parques"]],
             perceptualCategories: [cats["Café de especialidad"], cats["Especialistas en café"], cats["Ambiente relajado"]],
             gallery: [
-                "https://images.unsplash.com/photo-1560448204-53e8d8dd77e0",
-                "https://images.unsplash.com/photo-1509042239860-f550ce710b93",
-                "https://images.unsplash.com/photo-1511988617509-a57c8a288659"
+                "https://images.pexels.com/photos/302896/pexels-photo-302896.jpeg",
+                "https://images.pexels.com/photos/2074130/pexels-photo-2074130.jpeg",
+                "https://images.pexels.com/photos/3879495/pexels-photo-3879495.jpeg"
             ],
-            coverImage: "https://images.unsplash.com/photo-1560448204-53e8d8dd77e0",
+            coverImage: "https://images.pexels.com/photos/302896/pexels-photo-302896.jpeg",
             menu: [],
             schedule: {
                 lunes: { open: null, close: null, isClosed: true },
@@ -563,11 +563,11 @@ async function seed() {
             categories: [cats["WiFi"], cats["Espacio para trabajar"], cats["Opciones veganas"]],
             perceptualCategories: [cats["Café de especialidad"], cats["Ambiente relajado"], cats["Ideal para estudiar"]],
             gallery: [
-                "https://images.unsplash.com/photo-1524758631624-e2822e304c36",
-                "https://images.unsplash.com/photo-1627807452369-a2cd0b5ca56f",
-                "https://images.unsplash.com/photo-1529940027158-fededfe36677"
+                "https://images.pexels.com/photos/2396220/pexels-photo-2396220.jpeg",
+                "https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg",
+                "https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg"
             ],
-            coverImage: "https://images.unsplash.com/photo-1524758631624-e2822e304c36",
+            coverImage: "https://images.pexels.com/photos/2396220/pexels-photo-2396220.jpeg",
             menu: [],
             schedule: {
                 lunes: { open: "08:00", close: "19:00" },
@@ -584,7 +584,7 @@ async function seed() {
                 {
                     clientId: cli1._id,
                     rating: 4,
-                    comment: "Buen café y buen ambiente para estudiar. A veces se llena y es difícil conseguir mesa.",
+                    comment: "Buen café y buen lugar para estudiar. A veces se llena y es difícil conseguir mesa.",
                     categories: [cats["Ideal para estudiar"], cats["WiFi"]]
                 }
             ]
@@ -597,11 +597,11 @@ async function seed() {
             categories: [cats["WiFi"], cats["Acepta tarjetas"], cats["Espacio para trabajar"]],
             perceptualCategories: [cats["Venden café en grano"], cats["Especialistas en café"], cats["Tienda de café"]],
             gallery: [
-                "https://images.unsplash.com/photo-1554180830-5e648d7f41c9",
-                "https://images.unsplash.com/photo-1560448204-53e8d8dd77e0",
-                "https://images.unsplash.com/photo-1509042239860-f550ce710b93"
+                "https://images.pexels.com/photos/1551346/pexels-photo-1551346.jpeg",
+                "https://images.pexels.com/photos/904616/pexels-photo-904616.jpeg",
+                "https://images.pexels.com/photos/302896/pexels-photo-302896.jpeg"
             ],
-            coverImage: "https://images.unsplash.com/photo-1554180830-5e648d7f41c9",
+            coverImage: "https://images.pexels.com/photos/1551346/pexels-photo-1551346.jpeg",
             menu: [],
             schedule: {
                 lunes: { open: "09:00", close: "18:00" },
@@ -631,11 +631,11 @@ async function seed() {
             categories: [cats["WiFi"], cats["Espacio tranquilo"], cats["Cerca de transporte público"]],
             perceptualCategories: [cats["Café de especialidad"], cats["Ideal para trabajar"], cats["Ambiente silencioso"]],
             gallery: [
-                "https://images.unsplash.com/photo-1627807452369-a2cd0b5ca56f",
-                "https://images.unsplash.com/photo-1524758631624-e2822e304c36",
-                "https://images.unsplash.com/photo-1533777324565-a040eb52fac2"
+                "https://images.pexels.com/photos/887869/pexels-photo-887869.jpeg",
+                "https://images.pexels.com/photos/2396220/pexels-photo-2396220.jpeg",
+                "https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg"
             ],
-            coverImage: "https://images.unsplash.com/photo-1627807452369-a2cd0b5ca56f",
+            coverImage: "https://images.pexels.com/photos/887869/pexels-photo-887869.jpeg",
             menu: [],
             schedule: {
                 lunes: { open: "08:00", close: "18:00" },
@@ -663,13 +663,13 @@ async function seed() {
             description: "Tradicional confitería y café europeo en el centro, famosa por sus masas y postres.",
             location: { lat: -34.9050, lng: -56.1980 },
             categories: [cats["Céntrico"], cats["Espacio techado"], cats["Opciones sin gluten"]],
-            perceptualCategories: [cats["Estilo vintage"], cats["Ambiente silencioso"], cats["Tradicional"] ?? cats["Estilo vintage"]],
+            perceptualCategories: [cats["Estilo vintage"], cats["Ambiente silencioso"]],
             gallery: [
-                "https://images.unsplash.com/photo-1445116572660-236099ec97a0",
-                "https://images.unsplash.com/photo-1511988617509-a57c8a288659",
-                "https://images.unsplash.com/photo-1586985289384-a4155223d1d5"
+                "https://images.pexels.com/photos/4472870/pexels-photo-4472870.jpeg",
+                "https://images.pexels.com/photos/8165427/pexels-photo-8165427.jpeg",
+                "https://images.pexels.com/photos/33193713/pexels-photo-33193713.jpeg"
             ],
-            coverImage: "https://images.unsplash.com/photo-1445116572660-236099ec97a0",
+            coverImage: "https://images.pexels.com/photos/4472870/pexels-photo-4472870.jpeg",
             menu: [],
             schedule: {
                 lunes: { open: "08:00", close: "19:00" },
@@ -687,7 +687,7 @@ async function seed() {
                     clientId: cli1._id,
                     rating: 5,
                     comment: "Una confitería clásica. Excelente pastelería y un ambiente que te transporta en el tiempo.",
-                    categories: [cats["Tradicional"] ?? cats["Estilo vintage"], cats["Ambiente silencioso"]]
+                    categories: [cats["Estilo vintage"], cats["Ambiente silencioso"]]
                 }
             ]
         }
