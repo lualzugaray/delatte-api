@@ -29,14 +29,17 @@ async function run() {
       email_verified: true,
       app_metadata: { roles: ["admin"] },
     });
-    auth0User = response.data;
+    auth0User = response.data || response;
     console.log("🔍 auth0User RAW:", auth0User);
     console.log("🔑 Auth0 user created:", auth0User.user_id);
   } catch (err) {
     if (err.statusCode === 409) {
       console.log("⚠️ El usuario ya existe en Auth0, recuperándolo...");
-      const users = await auth0.getUsersByEmail(email);
-      auth0User = users[0].data || users[0];
+      const users = await auth0.users.getAll({
+        q: `email:"${email}"`,
+        search_engine: 'v3'
+      });
+      auth0User = users.data?.[0] || users[0];
       console.log("🔑 Auth0 existing user:", auth0User.user_id);
     } else {
       throw err;

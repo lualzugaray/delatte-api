@@ -27,6 +27,7 @@ async function updateAvgRating(cafeId) {
     await Cafe.findByIdAndUpdate(cafeId, { averageRating: avg });
 }
 
+
 async function createAuth0User(email, password, role) {
     let auth0User;
 
@@ -42,8 +43,11 @@ async function createAuth0User(email, password, role) {
         console.log("🔐 Auth0 user created:", auth0User.user_id);
     } catch (err) {
         if (err.statusCode === 409) {
-            const users = await auth0.getUsersByEmail(email);
-            auth0User = users[0].data || users[0];
+            const users = await auth0.users.getAll({
+                q: `email:"${email}"`,
+                search_engine: 'v3'
+            });
+            auth0User = users.data?.[0] || users[0];
             console.log("⚠️ Auth0 user already exists:", auth0User.user_id);
         } else {
             throw err;
@@ -70,7 +74,7 @@ async function seed() {
 
     const users = {};
     for (let { email, password, role } of [
-        { email: "admin@delatte.com", password: "Cafe123!", role: "admin" },
+        { email: "admin@delatte.com", password: "DelatteAdmin!23", role: "admin" },
         { email: "mgr1@delatte.com", password: "Cafe123!", role: "manager" },
         { email: "mgr2@delatte.com", password: "Cafe123!", role: "manager" },
         { email: "client1@delatte.com", password: "Cafe123!", role: "client" },
